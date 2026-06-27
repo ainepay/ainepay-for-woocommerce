@@ -1,0 +1,196 @@
+{
+  "signature": {
+    "secret": "sv_5n61GLATPVKKejONbmwQPg2LuXZwRlibgDuoDLUQzV4",
+    "cases": [
+      {
+        "name": "no_params",
+        "pairs": [],
+        "timestamp": "1000",
+        "recvWindow": "5000",
+        "payload": "timestamp=1000&recvWindow=5000",
+        "signature": "58294ab3d78d06d50d6370441a09b18a424203c86d44c5302bb366cab3e9e283"
+      },
+      {
+        "name": "simple_sorted",
+        "pairs": [
+          [
+            "coin",
+            "USDT"
+          ],
+          [
+            "chain",
+            "ETH"
+          ]
+        ],
+        "timestamp": "T",
+        "recvWindow": "W",
+        "payload": "chain=ETH&coin=USDT&timestamp=T&recvWindow=W",
+        "signature": "402025e403257990d522568fe5c12b2bc2549b1865941e21889af249b13c4b4f"
+      },
+      {
+        "name": "url_encoding_space",
+        "pairs": [
+          [
+            "note",
+            "hello world"
+          ]
+        ],
+        "timestamp": "T",
+        "recvWindow": "W",
+        "payload": "note=hello+world&timestamp=T&recvWindow=W",
+        "signature": "ae013ae47cacbc66734c54dfaff6aabdbcebdfb2210bdca9429b5c19e9dc76de"
+      },
+      {
+        "name": "known_secret",
+        "pairs": [
+          [
+            "userId",
+            "1000000001"
+          ],
+          [
+            "coin",
+            "USDT_ERC20"
+          ]
+        ],
+        "timestamp": "1761611071000",
+        "recvWindow": "60000",
+        "payload": "coin=USDT_ERC20&userId=1000000001&timestamp=1761611071000&recvWindow=60000",
+        "signature": "cab22b15fb6a5cf8342f07502235f6c9b2c08889b31f39c6f550e1ac43527654"
+      },
+      {
+        "name": "indexed_brackets",
+        "pairs": [
+          [
+            "orderIds[1]",
+            "222"
+          ],
+          [
+            "orderIds[0]",
+            "111"
+          ]
+        ],
+        "timestamp": "T",
+        "recvWindow": "W",
+        "payload": "orderIds%5B0%5D=111&orderIds%5B1%5D=222&timestamp=T&recvWindow=W",
+        "signature": "aa1dd3ac741f195dcb6bc746a75bb79c42ec7e5e3a068c01fd883beefab2e4fb"
+      },
+      {
+        "name": "repeated_key",
+        "pairs": [
+          [
+            "orderIds",
+            "222"
+          ],
+          [
+            "orderIds",
+            "111"
+          ]
+        ],
+        "timestamp": "T",
+        "recvWindow": "W",
+        "payload": "orderIds=111&orderIds=222&timestamp=T&recvWindow=W",
+        "signature": "afd5caafbe21faf3f4be01b59302949803ea32876df9b4acb754ec9d6122ab0b"
+      },
+      {
+        "name": "mixed",
+        "pairs": [
+          [
+            "coin",
+            "USDT"
+          ],
+          [
+            "orderIds",
+            "bbb"
+          ],
+          [
+            "orderIds",
+            "aaa"
+          ]
+        ],
+        "timestamp": "T",
+        "recvWindow": "W",
+        "payload": "coin=USDT&orderIds=aaa&orderIds=bbb&timestamp=T&recvWindow=W",
+        "signature": "cc10939b417edcf74118c3b7ef91ae1cac607193fefa09acc4e5aee17efca8d8"
+      },
+      {
+        "name": "null_value",
+        "pairs": [
+          [
+            "key",
+            ""
+          ]
+        ],
+        "timestamp": "T",
+        "recvWindow": "W",
+        "payload": "key=&timestamp=T&recvWindow=W",
+        "signature": "aa5bda5d103ca833d84cee6fdcfe82c0005aee3283493821921f6f29d3a498b0"
+      },
+      {
+        "name": "sample_pay_order",
+        "pairs": [
+          [
+            "orderId",
+            "wc_a1b2c3_1042"
+          ],
+          [
+            "userId",
+            "sample_user_1042"
+          ],
+          [
+            "coin",
+            "USDT"
+          ],
+          [
+            "chain",
+            "ETH"
+          ],
+          [
+            "qty",
+            "88.00"
+          ]
+        ],
+        "timestamp": "1760000300000",
+        "recvWindow": "60000",
+        "payload": "chain=ETH&coin=USDT&orderId=wc_a1b2c3_1042&qty=88.00&userId=sample_user_1042&timestamp=1760000300000&recvWindow=60000",
+        "signature": "9b00818caf2e17cbe95d7a70b829687af72da177dba0160c66850984748e8654"
+      }
+    ]
+  },
+  "notify": {
+    "secret": "sv_5n61GLATPVKKejONbmwQPg2LuXZwRlibgDuoDLUQzV4",
+    "legacy_known_vector": {
+      "canonical": "coin=USDT&created=1767793122000&expired=1767793122000&merchantId=1001&orderId=order123&qty=1.11&status=PAID&updated=1767793122000&userId=user_001",
+      "signature": "08fbca6b485a773c764ee0b5933e7936d536cda67bb44c19667a41ae401d7036"
+    },
+    "with_timestamp": {
+      "canonical": "coin=USDT&created=1767793122000&expired=1767793122000&merchantId=1001&orderId=order123&qty=1.11&status=PAID&updated=1767793122000&userId=user_001",
+      "payload": "coin=USDT&created=1767793122000&expired=1767793122000&merchantId=1001&orderId=order123&qty=1.11&status=PAID&updated=1767793122000&userId=user_001&timestamp=1760000300000&recvWindow=5000",
+      "signature": "bf6f8641517d52f6c8e72089d702a9b9110d50654f8ad25409fb4be5160d8923",
+      "timestamp": "1760000300000",
+      "recvWindow": "5000",
+      "body": {
+        "coin": "USDT",
+        "created": "1767793122000",
+        "expired": "1767793122000",
+        "merchantId": "1001",
+        "orderId": "order123",
+        "qty": "1.11",
+        "status": "PAID",
+        "updated": "1767793122000",
+        "userId": "user_001"
+      }
+    }
+  },
+  "create2": {
+    "official_test": {
+      "initCodeHash": "0x100119e6c2c500692ce3d11bb1218d751a6e4343d712634c8735d3f40f32f3f2",
+      "salt": "0x27f89126aa421e446ffa9b36c70a95bf9172d04dc88316f64606278f4cb69523",
+      "address": "0x601869574A7b726aA1Ac1833C49f3932F8d525c4"
+    },
+    "mainnet_example": {
+      "initCodeHash": "0x700884ca8ce8aa108d2645016be4292e00c7ad3c632492487459ca779f4eded1",
+      "salt": "0xbd13cb37ec1ae5d8f197be39e1bbbbd8fd2ecd50abddb84269da285df6f76a4a",
+      "address": "0x0A2eA81f9896064690cE07391646fA48c6dE7219"
+    }
+  }
+}

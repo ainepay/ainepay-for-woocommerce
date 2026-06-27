@@ -1,0 +1,19 @@
+# Session handoff notes (local only)
+log/
+logs/
+
+# Composer / build artifacts
+/vendor/
+node_modules/
+dist/
+
+# OS / editor
+.DS_Store
+*.log
+
+# Local Composer tooling/cache
+.composer/
+composer.phar
+/review
+/doc
+.phpunit.result.cache

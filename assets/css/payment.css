@@ -1,0 +1,108 @@
+.ainepay-instructions {
+	margin: 1.5em 0;
+	padding: 1.25em;
+	border: 1px solid #e0e0e0;
+	border-radius: 8px;
+}
+
+.ainepay-instructions .ainepay-qr {
+	margin: 1em 0;
+}
+
+.ainepay-instructions .ainepay-qr img,
+.ainepay-instructions .ainepay-qr canvas {
+	display: block;
+}
+
+.ainepay-address-row {
+	display: flex;
+	align-items: center;
+	gap: 0.5em;
+	flex-wrap: wrap;
+	margin: 0.75em 0;
+}
+
+.ainepay-address {
+	word-break: break-all;
+	padding: 0.4em 0.6em;
+	background: #f6f7f7;
+	border-radius: 4px;
+	font-size: 0.95em;
+}
+
+.ainepay-countdown-value {
+	font-variant-numeric: tabular-nums;
+	font-weight: 600;
+}
+
+.ainepay-status {
+	font-weight: 600;
+}
+
+.ainepay-badge {
+	display: inline-block;
+	margin: 0 0 1em;
+	padding: 0.35em 0.85em;
+	border-radius: 999px;
+	font-size: 0.9em;
+	font-weight: 600;
+	line-height: 1.4;
+}
+
+.ainepay-badge::before {
+	content: "";
+	display: inline-block;
+	width: 0.6em;
+	height: 0.6em;
+	margin-right: 0.5em;
+	border-radius: 50%;
+	vertical-align: middle;
+	background: currentColor;
+}
+
+.ainepay-badge-awaiting {
+	background: #fff4e5;
+	color: #8a5300;
+}
+
+.ainepay-badge-paid {
+	background: #e6f6ea;
+	color: #1a7f37;
+}
+
+.ainepay-badge-expired {
+	background: #fdecea;
+	color: #b3261e;
+}
+
+.ainepay-note {
+	font-size: 0.85em;
+	color: #555;
+	margin-top: 1em;
+}
+
+.ainepay-badge-cancelled {
+	background: #fdecea;
+	color: #b3261e;
+}
+
+.ainepay-badge-refunded {
+	background: #eef2ff;
+	color: #3538cd;
+}
+
+.ainepay-badge-verifying {
+	background: #fff4e5;
+	color: #8a5300;
+}
+
+.ainepay-cancel-row {
+	margin-top: 1em;
+}
+
+.ainepay-cancel-result {
+	display: block;
+	margin-top: 0.5em;
+	font-size: 0.9em;
+	color: #555;
+}

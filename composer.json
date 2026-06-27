@@ -1,0 +1,48 @@
+{
+	"name": "ainepay/ainepay-for-woocommerce",
+	"description": "Accept non-custodial USDT/USDC stablecoin payments through AinePay in WooCommerce.",
+	"type": "wordpress-plugin",
+	"license": "GPL-2.0-or-later",
+	"keywords": [
+		"woocommerce",
+		"payment-gateway",
+		"stablecoin",
+		"usdt",
+		"usdc",
+		"ainepay"
+	],
+	"authors": [
+		{
+			"name": "AinePay",
+			"email": "support@ainepay.com",
+			"homepage": "https://ainepay.com"
+		}
+	],
+	"support": {
+		"email": "support@ainepay.com",
+		"issues": "https://github.com/ainepay/ainepay-for-woocommerce/issues"
+	},
+	"require": {
+		"php": ">=7.4",
+		"ext-hash": "*",
+		"ext-json": "*",
+		"kornrunner/keccak": "^1.1",
+		"bacon/bacon-qr-code": "^2.0"
+	},
+	"require-dev": {
+		"phpunit/phpunit": "^9.6"
+	},
+	"autoload": {
+		"classmap": [
+			"includes/"
+		]
+	},
+	"scripts": {
+		"test": "phpunit -c phpunit.xml.dist",
+		"test:wc-integration": "bash bin/test-wc-integration.sh"
+	},
+	"config": {
+		"optimize-autoloader": true,
+		"sort-packages": true
+	}
+}
