@@ -32,8 +32,8 @@ if ( apply_filters( 'ainepay_delete_order_meta_on_uninstall', false ) ) {
 	$hpos_meta = $wpdb->prefix . 'wc_orders_meta';
 	$exists    = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $hpos_meta ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 	if ( $exists === $hpos_meta ) {
-		$wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-			"DELETE FROM {$hpos_meta} WHERE meta_key LIKE '\_ainepay\_%'"
+		$wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name is derived from the trusted WordPress prefix and cannot be a value placeholder.
+			"DELETE FROM {$hpos_meta} WHERE meta_key LIKE '\_ainepay\_%'" // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- trusted table identifier; SQL value placeholders cannot represent identifiers.
 		);
 	}
 }

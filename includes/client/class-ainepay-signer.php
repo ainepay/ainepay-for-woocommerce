@@ -42,8 +42,8 @@ class Ainepay_Signer {
 		$out   = '';
 		$len   = strlen( $value );
 		for ( $i = 0; $i < $len; $i++ ) {
-			$ch  = $value[ $i ];
-			$ord = ord( $ch );
+			$ch            = $value[ $i ];
+			$ord           = ord( $ch );
 			$is_unreserved =
 				( $ord >= 0x41 && $ord <= 0x5A ) || // A-Z.
 				( $ord >= 0x61 && $ord <= 0x7A ) || // a-z.
@@ -67,7 +67,7 @@ class Ainepay_Signer {
 	 */
 	public static function decode_secret( $secret_key ) {
 		$secret_key = (string) $secret_key;
-		$b64 = ( 0 === strpos( $secret_key, 'sv_' ) ) ? substr( $secret_key, 3 ) : $secret_key;
+		$b64        = ( 0 === strpos( $secret_key, 'sv_' ) ) ? substr( $secret_key, 3 ) : $secret_key;
 		// base64url -> base64, restore padding.
 		$b64 = strtr( $b64, '-_', '+/' );
 		$pad = strlen( $b64 ) % 4;
@@ -92,8 +92,8 @@ class Ainepay_Signer {
 	public static function build_payload( array $pairs, $timestamp, $recv_window ) {
 		$normalized = array();
 		foreach ( $pairs as $pair ) {
-			$key   = isset( $pair[0] ) ? (string) $pair[0] : '';
-			$value = isset( $pair[1] ) && null !== $pair[1] ? (string) $pair[1] : '';
+			$key          = isset( $pair[0] ) ? (string) $pair[0] : '';
+			$value        = isset( $pair[1] ) && null !== $pair[1] ? (string) $pair[1] : '';
 			$normalized[] = array( $key, $value );
 		}
 
@@ -160,7 +160,7 @@ class Ainepay_Signer {
 	 * @return array<string,string>
 	 */
 	public static function parse_body( $raw_body ) {
-		$map = array();
+		$map      = array();
 		$raw_body = (string) $raw_body;
 		if ( '' === $raw_body ) {
 			return $map;
@@ -170,8 +170,8 @@ class Ainepay_Signer {
 			if ( false === $idx ) {
 				continue;
 			}
-			$key   = urldecode( substr( $pair, 0, $idx ) );
-			$value = urldecode( substr( $pair, $idx + 1 ) );
+			$key         = urldecode( substr( $pair, 0, $idx ) );
+			$value       = urldecode( substr( $pair, $idx + 1 ) );
 			$map[ $key ] = $value;
 		}
 		return $map;

@@ -20,8 +20,9 @@ defined( 'ABSPATH' ) || exit;
  */
 class Ainepay_Webhook_Handler {
 
-	const QUERY_VAR     = 'ainepay-notify';
-	const CALLBACK_HDR  = 'x-callback-token';
+	const QUERY_VAR      = 'ainepay-notify';
+	const CALLBACK_HDR   = 'x-callback-token';
+	const MAX_BODY_BYTES = 16384;
 
 	/**
 	 * Register routing hooks.
@@ -71,7 +72,7 @@ class Ainepay_Webhook_Handler {
 			$is_endpoint = true;
 		} else {
 			// Fallback: match the path suffix directly (plain permalinks).
-			$request_uri = isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( $_SERVER['REQUEST_URI'] ) : '';
+			$request_uri = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
 			$path        = wp_parse_url( $request_uri, PHP_URL_PATH );
 			if ( is_string( $path ) && preg_match( '#/ainepay/notify/?$#', $path ) ) {
 				$is_endpoint = true;
@@ -85,8 +86,11 @@ class Ainepay_Webhook_Handler {
 		$method = isset( $_SERVER['REQUEST_METHOD'] ) ? strtoupper( sanitize_text_field( wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) ) : 'GET';
 		if ( 'GET' === $method || 'HEAD' === $method ) {
 			$this->handle_connectivity_test();
-		} else {
+		} elseif ( 'POST' === $method ) {
 			$this->handle_notification();
+		} else {
+			header( 'Allow: GET, HEAD, POST' );
+			$this->respond( 405, 'method not allowed' );
 		}
 	}
 
@@ -112,7 +116,25 @@ class Ainepay_Webhook_Handler {
 	 * @return void
 	 */
 	private function handle_notification() {
-		$raw_body    = file_get_contents( 'php://input' );
+		// Reject a declared oversized request before PHP copies or parses its body.
+		// A missing Content-Length is valid for chunked HTTP, so the bounded stream
+		// read below remains the authoritative limit in every case.
+		$content_length = self::declared_content_length();
+		if ( false === $content_length ) {
+			$this->respond( 400, 'invalid content length' );
+		}
+		if ( null !== $content_length && $content_length > self::MAX_BODY_BYTES ) {
+			$this->respond( 413, 'payload too large' );
+		}
+
+		$raw_body = self::read_request_body();
+		if ( false === $raw_body ) {
+			$this->respond( 400, 'invalid request body' );
+		}
+		if ( strlen( $raw_body ) > self::MAX_BODY_BYTES ) {
+			$this->respond( 413, 'payload too large' );
+		}
+
 		$signature   = self::header( 'x-api-signature' );
 		$timestamp   = (int) self::header( 'x-api-timestamp' );
 		$recv_window = (int) self::header( 'x-api-recv-window' );
@@ -153,6 +175,55 @@ class Ainepay_Webhook_Handler {
 				$this->respond( 500, 'temporary error, retry' );
 				break;
 		}
+	}
+
+	/**
+	 * Parse the optional Content-Length header without accepting signs, decimals,
+	 * whitespace or overflow-like values.
+	 *
+	 * @return int|null|false Byte count, null when absent, false when malformed.
+	 */
+	private static function declared_content_length() {
+		// Preserve whitespace/signs for the strict grammar check below; sanitizing
+		// would normalize malformed protocol input into an accepted integer.
+		$raw = isset( $_SERVER['CONTENT_LENGTH'] ) ? wp_unslash( $_SERVER['CONTENT_LENGTH'] ) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- validated by the anchored digits-only regex before use.
+		if ( '' === $raw ) {
+			return null;
+		}
+		if ( ! is_string( $raw ) || 1 !== preg_match( '/\A[0-9]+\z/D', $raw ) ) {
+			return false;
+		}
+		// Compare as a decimal string first so values larger than PHP_INT_MAX cannot
+		// wrap into a small integer and bypass the early rejection.
+		$normalised = ltrim( $raw, '0' );
+		$normalised = '' === $normalised ? '0' : $normalised;
+		$max        = (string) self::MAX_BODY_BYTES;
+		if ( strlen( $normalised ) > strlen( $max )
+			|| ( strlen( $normalised ) === strlen( $max ) && strcmp( $normalised, $max ) > 0 ) ) {
+			return self::MAX_BODY_BYTES + 1;
+		}
+		return (int) $normalised;
+	}
+
+	/**
+	 * Read at most MAX_BODY_BYTES + 1 bytes. The extra byte distinguishes an exact
+	 * limit-sized body from an oversized/chunked body without ever buffering the
+	 * remainder in plugin memory.
+	 *
+	 * @param resource|string $stream Input stream; injectable for bounded unit tests.
+	 * @return string|false Bounded bytes, or false when the stream cannot be read.
+	 */
+	private static function read_request_body( $stream = 'php://input' ) {
+		$owned  = ! is_resource( $stream );
+		$handle = $owned ? @fopen( $stream, 'rb' ) : $stream; // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen
+		if ( false === $handle ) {
+			return false;
+		}
+		$body = stream_get_contents( $handle, self::MAX_BODY_BYTES + 1 );
+		if ( $owned ) {
+			fclose( $handle );
+		}
+		return is_string( $body ) ? $body : false;
 	}
 
 	/**

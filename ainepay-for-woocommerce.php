@@ -42,7 +42,7 @@ spl_autoload_register(
 		if ( 0 !== strpos( $class, 'Ainepay_' ) ) {
 			return;
 		}
-		$file = 'class-' . str_replace( '_', '-', strtolower( $class ) ) . '.php';
+		$file  = 'class-' . str_replace( '_', '-', strtolower( $class ) ) . '.php';
 		$paths = array(
 			AINEPAY_WC_PLUGIN_DIR . 'includes/' . $file,
 			AINEPAY_WC_PLUGIN_DIR . 'includes/client/' . $file,

@@ -127,6 +127,20 @@ class PollerRepairTest extends TestCase {
 		$this->assertTrue( $order->has_status( 'on-hold' ) );
 	}
 
+	public function test_terminal_repair_clears_paid_verify_bookkeeping_once() {
+		$order = $this->order( 4109, 'processing', 'INIT', 'OID-CLEAR-ONCE' );
+		$order->update_meta_data( '_ainepay_paid_verify_attempts', 2 );
+		$order->update_meta_data( '_ainepay_paid_verify_failed', '1' );
+		$before = $order->save_calls;
+		Ainepay_Test_Env::set_gateway( $this->payload( 'OID-CLEAR-ONCE', 'INIT' ) );
+
+		( new Ainepay_Poller() )->run();
+
+		$this->assertSame( 0, $order->get_meta( '_ainepay_paid_verify_attempts' ) );
+		$this->assertSame( '', $order->get_meta( '_ainepay_paid_verify_failed' ) );
+		$this->assertSame( 2, $order->save_calls - $before, 'one apply_status save plus exactly one clear save' );
+	}
+
 	public function test_poller_reverts_unbacked_processing_when_backend_is_pending() {
 		$order = $this->order( 4107, 'processing', 'INIT', 'OID-PENDING' );
 		Ainepay_Test_Env::set_gateway( $this->payload( 'OID-PENDING', 'PENDING' ) );
@@ -219,7 +233,21 @@ class PollerRepairTest extends TestCase {
 		// A settle race left the order WC=cancelled while the backend is really PAID.
 		// Re-driving cancel hits NOT_INIT (code 26) and reconciles to PAID, repairing
 		// the order back to processing instead of losing the payment as cancelled.
-		$order  = $this->order( 4110, 'cancelled', '', 'OID-CANCEL-PAID' );
+		// Make the order non-virtual so WooCommerce's paid target is processing;
+		// an empty-item fixture is intentionally treated as virtual/completable.
+		$order = Ainepay_Test_Env::add_order(
+			new WC_Order(
+				array(
+					'id'     => 4110,
+					'status' => 'cancelled',
+					'meta'   => array(
+						'_ainepay_order_id' => 'OID-CANCEL-PAID',
+						'_ainepay_status'   => '',
+					),
+					'items'  => array( new Ainepay_Fake_Item( new Ainepay_Fake_Product( false ) ) ),
+				)
+			)
+		);
 		$client = Ainepay_Test_Env::set_gateway(
 			$this->payload( 'OID-CANCEL-PAID', 'PAID' ),
 			new WP_Error( 'ainepay_api_error', 'invalid', array( 'code' => 26 ) )

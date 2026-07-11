@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<ruleset name="AinePay for WooCommerce">
+	<description>WordPress coding standards for the AinePay WooCommerce gateway.</description>
+	<file>ainepay-for-woocommerce.php</file>
+	<file>uninstall.php</file>
+	<file>includes</file>
+	<file>templates</file>
+	<exclude-pattern>*/vendor/*</exclude-pattern>
+	<exclude-pattern>*/dist/*</exclude-pattern>
+	<arg name="basepath" value="."/>
+	<arg name="colors"/>
+	<arg value="ps"/>
+	<config name="ignore_warnings_on_exit" value="1"/>
+	<config name="minimum_supported_wp_version" value="6.2"/>
+	<config name="custom_capabilities" value="manage_woocommerce"/>
+	<rule ref="WordPress">
+		<exclude name="WordPress.Files.FileName.InvalidClassFileName"/>
+	</rule>
+	<rule ref="PHPCompatibilityWP"/>
+	<rule ref="PHPCompatibility.Miscellaneous.ValidIntegers.HexNumericStringFound">
+		<exclude-pattern>includes/class-ainepay-gateway.php</exclude-pattern>
+	</rule>
+	<config name="testVersion" value="7.4-"/>
+</ruleset>

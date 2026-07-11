@@ -1,0 +1,115 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  php:
+    name: PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['7.4', '8.1', '8.3', '8.5']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+          tools: composer:v2
+      - run: composer validate --strict
+      - run: composer install --prefer-dist --no-interaction
+      - run: composer audit --locked
+      - run: composer lint
+      - run: composer test
+
+  standards:
+    name: WordPress coding standards
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+          tools: composer:v2
+      - run: composer install --prefer-dist --no-interaction
+      - run: composer phpcs
+
+  woocommerce-integration:
+    name: WP ${{ matrix.wp }} / WooCommerce ${{ matrix.wc }} / PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+          MYSQL_DATABASE: wordpress_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - wp: '6.2'
+            wc: '7.0.1'
+            php: '7.4'
+          - wp: '7.0.1'
+            wc: '10.9.4'
+            php: '8.3'
+    env:
+      WP_TESTS_DIR: /tmp/wordpress-tests-lib
+      WC_TESTS_DIR: /tmp/woocommerce
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+          tools: composer:v2
+      - run: composer install --prefer-dist --no-interaction
+      - name: Install WordPress test library
+        run: |
+          svn export --quiet "https://develop.svn.wordpress.org/tags/${{ matrix.wp }}/tests/phpunit/includes/" "$WP_TESTS_DIR/includes"
+          svn export --quiet "https://develop.svn.wordpress.org/tags/${{ matrix.wp }}/tests/phpunit/data/" "$WP_TESTS_DIR/data"
+          curl -sSLo /tmp/wordpress.tar.gz "https://wordpress.org/wordpress-${{ matrix.wp }}.tar.gz"
+          tar -xzf /tmp/wordpress.tar.gz -C /tmp
+          cp "$WP_TESTS_DIR/includes/wp-tests-config-sample.php" "$WP_TESTS_DIR/wp-tests-config.php"
+          sed -i "s/youremptytestdbnamehere/wordpress_test/; s/yourusernamehere/root/; s/yourpasswordhere//; s|dirname( __FILE__ ) . '/src/'|'/tmp/wordpress/'|" "$WP_TESTS_DIR/wp-tests-config.php"
+      - name: Install WooCommerce source
+        run: git clone --depth 1 --branch "${{ matrix.wc }}" https://github.com/woocommerce/woocommerce.git "$WC_TESTS_DIR"
+      - run: composer test:wc-integration
+
+  release:
+    name: Release package and Plugin Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+          tools: composer:v2
+      - run: bin/build.sh
+      - uses: wordpress/plugin-check-action@v1
+        with:
+          build-dir: dist/ainepay-for-woocommerce
+          exclude-directories: vendor
+          include-experimental: false
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ainepay-for-woocommerce-0.1.0
+          path: dist/ainepay-for-woocommerce.zip
+          if-no-files-found: error

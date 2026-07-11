@@ -199,7 +199,7 @@ class Ainepay_Plugin {
 	 * @return array
 	 */
 	public function add_settings_link( $links ) {
-		$url = admin_url( 'admin.php?page=wc-settings&tab=checkout&section=' . self::GATEWAY_ID );
+		$url           = admin_url( 'admin.php?page=wc-settings&tab=checkout&section=' . self::GATEWAY_ID );
 		$settings_link = '<a href="' . esc_url( $url ) . '">' . esc_html__( 'Settings', 'ainepay-for-woocommerce' ) . '</a>';
 		array_unshift( $links, $settings_link );
 		return $links;

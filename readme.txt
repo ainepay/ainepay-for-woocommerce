@@ -30,11 +30,11 @@ Order status is guaranteed by active AinePay order polling. Signed webhooks spee
 
 = How payments are reused =
 
-AinePay does not issue refunds. If a payment is late or the window expires, any
-funds the customer sent remain as a reusable balance on AinePay. A logged-in
-customer who places another order applies that balance automatically. Guest
-orders are not linked to an account, so a guest balance is not reused across
-orders.
+AinePay does not issue automatic refunds or custody the underlying funds. If a
+payment is late or the window expires, AinePay may record the amount as a
+reusable ledger credit. A logged-in customer who places another order applies
+that credit automatically. Guest orders are not linked across orders, so a
+guest credit cannot be reused automatically.
 
 == External services ==
 
@@ -48,7 +48,7 @@ and query order status. It is required for the plugin to function.
   per-order key for guests. No email address or other personal data is sent.
 * **When:** when a customer places an AinePay order, when you save settings
   (to load supported coins), and when order status is queried.
-* **Endpoints:** `https://api.ainepay.com` by default (configurable).
+* **Endpoints:** `https://api.ainepay.com`. Additional HTTPS test hosts require an explicit developer allowlist filter.
 * AinePay also sends signed webhooks to `https://your-site/ainepay/notify`.
 
 Service provider: AinePay — https://ainepay.com
@@ -77,29 +77,11 @@ Late payments are not refunded by AinePay. Signed-in customers can reuse their r
 
 = Third-party fulfilment integrations =
 
-Do not ship or grant entitlements solely from
-`woocommerce_order_status_processing` or
-`woocommerce_order_status_completed`. Those hooks can be triggered by an
-administrator, REST client, ERP, or another plugin before AinePay confirms PAID.
-
-Integrations should preferably use the authoritative
-`ainepay_order_paid_backed` action. Existing WooCommerce status-hook
-integrations must fail closed for AinePay orders unless
-`Ainepay_Order_Sync::is_paid_backed_order( $order )` returns true. This public
-method is the supported contract; do not read `_ainepay_status` directly.
-Callbacks on `ainepay_order_paid_backed` must be idempotent by WooCommerce order
-id because process recovery can safely replay the action.
-
-The "not paid until AinePay confirms PAID" guarantee covers the plugin payment
-block, the customer email and download gates, and the `ainepay_order_paid_backed`
-action; it does not rewrite WooCommerce's native status label. If someone moves
-an unpaid AinePay order to processing/completed directly (bypassing payment), the
-native My Account order list and order-detail title show the standard
-Processing/Completed label for the short window before the async guard verifies
-with AinePay and reverts the order to on-hold. No fulfilment side effect fires in
-that window. Any consumer of the raw WooCommerce status must treat
-`Ainepay_Order_Sync::is_paid_backed_order( $order )` as the source of truth, not
-the WooCommerce status alone.
+Third-party integrations must not fulfil AinePay orders based only on the
+WooCommerce processing or completed status. Use the
+`ainepay_order_paid_backed` action, or confirm
+`Ainepay_Order_Sync::is_paid_backed_order( $order )` returns true, before
+shipping goods or granting access.
 
 == Frequently Asked Questions ==
 
@@ -113,7 +95,7 @@ No. Payments go to an address deterministically derived from your own collection
 
 = What happens if a customer pays late? =
 
-AinePay keeps the amount as a reusable balance. A logged-in customer can place the order again to apply it; guest orders are not linked to an account and do not reuse a balance. AinePay does not issue refunds.
+AinePay does not custody the underlying funds. It may record the late amount as a reusable ledger credit. A logged-in customer can place the order again to apply that credit; guest orders are not linked across orders and cannot reuse it automatically, so the customer should contact the store. AinePay does not issue automatic refunds.
 
 = How do I refund an order? =
 

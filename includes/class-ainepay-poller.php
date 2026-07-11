@@ -17,18 +17,18 @@ defined( 'ABSPATH' ) || exit;
  */
 class Ainepay_Poller {
 
-	const HOOK         = 'ainepay_poll_pending_orders';
-	const BATCH_LIMIT  = 50;
-	const MAX_ORDER_AGE_DAYS = 7;
+	const HOOK                 = 'ainepay_poll_pending_orders';
+	const BATCH_LIMIT          = 50;
+	const MAX_ORDER_AGE_DAYS   = 7;
 	const CURSOR_OPTION_PREFIX = 'ainepay_poll_cursor_';
+
+	const CRON_SCHEDULE = 'ainepay_poll_interval';
 
 	/**
 	 * Register hooks and schedule the recurring task.
 	 *
 	 * @return void
 	 */
-	const CRON_SCHEDULE = 'ainepay_poll_interval';
-
 	public static function init() {
 		$self = new self();
 		add_action( self::HOOK, array( $self, 'run' ) );
@@ -44,7 +44,7 @@ class Ainepay_Poller {
 	 * @return array
 	 */
 	public function register_cron_schedule( $schedules ) {
-		$interval = (int) apply_filters( 'ainepay_poll_cron_interval', $this->poll_interval() );
+		$interval                         = (int) apply_filters( 'ainepay_poll_cron_interval', $this->poll_interval() );
 		$schedules[ self::CRON_SCHEDULE ] = array(
 			'interval' => max( 60, $interval ),
 			'display'  => __( 'AinePay polling interval', 'ainepay-for-woocommerce' ),
@@ -116,15 +116,29 @@ class Ainepay_Poller {
 				'compare' => 'NOT IN',
 			),
 		);
-		$paid_mismatch_meta = array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+		$paid_mismatch_meta     = array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
 			'relation' => 'OR',
-			array( 'key' => '_ainepay_status', 'compare' => 'NOT EXISTS' ),
-			array( 'key' => '_ainepay_status', 'value' => 'PAID', 'compare' => '!=' ),
+			array(
+		'key'     => '_ainepay_status',
+		'compare' => 'NOT EXISTS',
+		),
+			array(
+		'key'     => '_ainepay_status',
+		'value'   => 'PAID',
+		'compare' => '!=',
+		),
 		);
-		$refund_mismatch_meta = array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+		$refund_mismatch_meta   = array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
 			'relation' => 'OR',
-			array( 'key' => '_ainepay_status', 'compare' => 'NOT EXISTS' ),
-			array( 'key' => '_ainepay_status', 'value' => 'REFUND', 'compare' => '!=' ),
+			array(
+		'key'     => '_ainepay_status',
+		'compare' => 'NOT EXISTS',
+		),
+			array(
+		'key'     => '_ainepay_status',
+		'value'   => 'REFUND',
+		'compare' => '!=',
+		),
 		);
 
 		// Each batch is paged by a persisted rotating cursor (fetch_batch) so a head
@@ -135,13 +149,16 @@ class Ainepay_Poller {
 		$orders = array();
 
 		// Primary batch: non-terminal orders awaiting a result.
-		$orders = array_merge( $orders, self::fetch_batch(
-			'primary',
-			array(
-				'status'       => array( 'on-hold' ),
-				'date_created' => $since,
+		$orders = array_merge(
+			$orders,
+			self::fetch_batch(
+				'primary',
+				array(
+					'status'       => array( 'on-hold' ),
+					'date_created' => $since,
+				)
 			)
-		) );
+		);
 
 		// Repair batch: WC=cancelled orders NOT yet backed by an authoritative CANCEL.
 		// Deliberately NO creation-age cutoff. A native admin cancel whose immediate
@@ -151,52 +168,64 @@ class Ainepay_Poller {
 		// window. This set is self-draining: refresh_order re-drives request_cancel,
 		// which moves each order to CANCEL (or repairs a settle-race PAID back to
 		// processing, or EXPIRED→failed), so it leaves the unbacked-cancelled set.
-		$orders = array_merge( $orders, self::fetch_batch(
-			'cancelled',
-			array(
-				'status'     => array( 'cancelled' ),
-				'meta_query' => $unbacked_terminal_meta,
+		$orders = array_merge(
+			$orders,
+			self::fetch_batch(
+				'cancelled',
+				array(
+					'status'     => array( 'cancelled' ),
+					'meta_query' => $unbacked_terminal_meta,
+				)
 			)
-		) );
+		);
 
 		// Repair batch: WC=failed orders NOT yet backed by a terminal status. Unlike
 		// cancelled, a failed order has no coordinator driving it to a terminal backing,
 		// so without an age cutoff every historical failed AinePay order would be
 		// re-queried forever. The settle-race window that could flip a recently-failed
 		// order to PAID is short, so the creation-age filter is retained here.
-		$orders = array_merge( $orders, self::fetch_batch(
-			'failed',
-			array(
-				'status'       => array( 'failed' ),
-				'date_created' => $since,
-				'meta_query'   => $unbacked_terminal_meta,
+		$orders = array_merge(
+			$orders,
+			self::fetch_batch(
+				'failed',
+				array(
+					'status'       => array( 'failed' ),
+					'date_created' => $since,
+					'meta_query'   => $unbacked_terminal_meta,
+				)
 			)
-		) );
+		);
 
 		// Repair unbacked Woo success states independently of the bounded
 		// ainepay_verify_paid Action Scheduler chain. A dropped/exhausted action must
 		// not leave processing/completed permanently trusted without AinePay PAID.
 		// Deliberately no creation-age cutoff: an external promotion can happen long
 		// after checkout and still needs repair.
-		$orders = array_merge( $orders, self::fetch_batch(
-			'success',
-			array(
-				'status'     => array( 'processing', 'completed' ),
-				'meta_query' => $paid_mismatch_meta,
+		$orders = array_merge(
+			$orders,
+			self::fetch_batch(
+				'success',
+				array(
+					'status'     => array( 'processing', 'completed' ),
+					'meta_query' => $paid_mismatch_meta,
+				)
 			)
-		) );
+		);
 
 		// Repair Woo-first full refunds independently of the bounded refund-verify
 		// chain. refresh_order() treats this state specially: while AinePay remains
 		// PAID the Woo refund is preserved; only authoritative REFUND closes it.
 		// Deliberately no creation-age cutoff: refunds commonly occur weeks later.
-		$orders = array_merge( $orders, self::fetch_batch(
-			'refund',
-			array(
-				'status'     => array( 'refunded' ),
-				'meta_query' => $refund_mismatch_meta,
+		$orders = array_merge(
+			$orders,
+			self::fetch_batch(
+				'refund',
+				array(
+					'status'     => array( 'refunded' ),
+					'meta_query' => $refund_mismatch_meta,
+				)
 			)
-		) );
+		);
 
 		if ( empty( $orders ) ) {
 			return;

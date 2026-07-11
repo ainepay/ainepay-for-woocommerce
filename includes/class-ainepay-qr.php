@@ -46,8 +46,8 @@ class Ainepay_Qr {
 				new RendererStyle( (int) $size, 1 ),
 				new SvgImageBackEnd()
 			);
-			$writer = new Writer( $renderer );
-			$svg    = $writer->writeString( (string) $text );
+			$writer   = new Writer( $renderer );
+			$svg      = $writer->writeString( (string) $text );
 			// Strip any leading XML prolog so the SVG can be embedded inline in
 			// HTML without an invalid processing instruction.
 			$svg = preg_replace( '/^\s*<\?xml[^>]*\?>\s*/i', '', $svg );

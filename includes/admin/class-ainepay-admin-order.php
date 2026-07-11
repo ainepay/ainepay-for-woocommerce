@@ -67,11 +67,11 @@ class Ainepay_Admin_Order {
 
 		$rows = array(
 			__( 'AinePay order ID', 'ainepay-for-woocommerce' ) => $order->get_meta( '_ainepay_order_id' ),
-			__( 'Coin', 'ainepay-for-woocommerce' )            => $order->get_meta( '_ainepay_coin' ),
-			__( 'Chain', 'ainepay-for-woocommerce' )           => $order->get_meta( '_ainepay_chain' ),
-			__( 'Amount', 'ainepay-for-woocommerce' )          => $order->get_meta( '_ainepay_qty' ),
+			__( 'Coin', 'ainepay-for-woocommerce' )   => $order->get_meta( '_ainepay_coin' ),
+			__( 'Chain', 'ainepay-for-woocommerce' )  => $order->get_meta( '_ainepay_chain' ),
+			__( 'Amount', 'ainepay-for-woocommerce' ) => $order->get_meta( '_ainepay_qty' ),
 			__( 'Payment address', 'ainepay-for-woocommerce' ) => $order->get_meta( '_ainepay_address' ),
-			__( 'AinePay status', 'ainepay-for-woocommerce' )  => $order->get_meta( '_ainepay_status' ),
+			__( 'AinePay status', 'ainepay-for-woocommerce' ) => $order->get_meta( '_ainepay_status' ),
 		);
 
 		echo '<table class="ainepay-admin-order" style="width:100%">';
@@ -181,7 +181,7 @@ class Ainepay_Admin_Order {
 
 		$outcome = Ainepay_Order_Sync::request_cancel( $order, 'admin' );
 
-		$reload   = true;
+		$reload = true;
 		switch ( $outcome ) {
 			case Ainepay_Order_Sync::CANCEL_DONE:
 				$message = __( 'Order cancelled at AinePay.', 'ainepay-for-woocommerce' );
@@ -208,6 +208,11 @@ class Ainepay_Admin_Order {
 				break;
 		}
 
-		wp_send_json_success( array( 'message' => $message, 'reload' => $reload ) );
+		wp_send_json_success(
+			array(
+				'message' => $message,
+				'reload'  => $reload,
+			)
+		);
 	}
 }

@@ -19,6 +19,12 @@ class Ainepay_Payment_Display {
 	const AJAX_ACTION   = 'ainepay_order_status';
 	const CANCEL_ACTION = 'ainepay_customer_cancel';
 
+	// The browser normally polls every 15 seconds. Permit one authoritative
+	// refresh per order inside a shorter window and cap unauthenticated bursts
+	// per client IP before they can consume order lookups or backend workers.
+	const STATUS_THROTTLE_SECONDS = 10;
+	const STATUS_IP_BURST         = 20;
+
 	// Rate-limit window (seconds) for the unauthenticated customer-cancel
 	// endpoint, and the max cancel attempts one client IP may make within it.
 	const CANCEL_THROTTLE_SECONDS = 10;
@@ -67,23 +73,23 @@ class Ainepay_Payment_Display {
 		}
 
 		$data = array(
-			'order'      => $order,
-			'address'    => (string) $address,
-			'coin'       => (string) $order->get_meta( '_ainepay_coin' ),
-			'chain'      => (string) $order->get_meta( '_ainepay_chain' ),
-			'qty'        => (string) $order->get_meta( '_ainepay_qty' ),
+			'order'       => $order,
+			'address'     => (string) $address,
+			'coin'        => (string) $order->get_meta( '_ainepay_coin' ),
+			'chain'       => (string) $order->get_meta( '_ainepay_chain' ),
+			'qty'         => (string) $order->get_meta( '_ainepay_qty' ),
 			'pay_expired' => (int) $order->get_meta( '_ainepay_pay_expired' ),
-			'status'     => (string) $order->get_meta( '_ainepay_status' ),
+			'status'      => (string) $order->get_meta( '_ainepay_status' ),
 			// Balance reuse only applies when the userId was account-derived at
 			// placement (see Ainepay_Order_Helper::can_reuse_balance). Guests get
 			// a per-order userId and so cannot reuse a left-over balance.
-			'can_reuse'  => Ainepay_Order_Helper::can_reuse_balance( $order ),
-				// Final = stop polling. A success WC status only counts as final once it
-				// is backed by an authoritative PAID; an UNBACKED processing/
-			// completed order is still being verified/reverted by the async guard, so
-			// it must keep polling instead of freezing on a contradictory state.
-			'is_final'   => self::is_paid_backed( $order ) || $order->has_status( array( 'failed', 'cancelled', 'refunded' ) ),
-			'qr_svg'     => class_exists( 'Ainepay_Qr' ) ? Ainepay_Qr::svg( (string) $address ) : '',
+			'can_reuse'   => Ainepay_Order_Helper::can_reuse_balance( $order ),
+			// Final = stop polling. A success WC status only counts as final once it
+			// is backed by an authoritative PAID; an UNBACKED processing/
+		// completed order is still being verified/reverted by the async guard, so
+		// it must keep polling instead of freezing on a contradictory state.
+		'is_final'        => self::is_paid_backed( $order ) || $order->has_status( array( 'failed', 'cancelled', 'refunded' ) ),
+			'qr_svg'      => class_exists( 'Ainepay_Qr' ) ? Ainepay_Qr::svg( (string) $address ) : '',
 		);
 
 		wc_get_template(
@@ -107,7 +113,7 @@ class Ainepay_Payment_Display {
 		// Resolve the order being viewed so the expiry message can match the
 		// customer's balance-reuse eligibility (signed-in vs guest).
 		global $wp;
-		$order_id  = 0;
+		$order_id = 0;
 		if ( isset( $wp->query_vars['order-received'] ) ) {
 			$order_id = absint( $wp->query_vars['order-received'] );
 		} elseif ( isset( $wp->query_vars['view-order'] ) ) {
@@ -168,6 +174,12 @@ class Ainepay_Payment_Display {
 	 * @return void
 	 */
 	public function ajax_status() {
+		// Fast-fail abusive clients before nonce verification, order lookup or any
+		// possible AinePay request. This is a load-shedding guard, not an auth check.
+		if ( self::status_ip_throttled() ) {
+			wp_send_json_error( array( 'message' => __( 'Too many requests. Please wait a moment and try again.', 'ainepay-for-woocommerce' ) ), 429 );
+		}
+
 		check_ajax_referer( self::AJAX_ACTION, 'nonce' );
 
 		$order_id = isset( $_POST['order_id'] ) ? absint( wp_unslash( $_POST['order_id'] ) ) : 0;
@@ -186,19 +198,44 @@ class Ainepay_Payment_Display {
 			// PAID backing: a success WC status alone (e.g. set by an admin or
 		// a 3rd party without AinePay confirming payment) must never show as paid.
 		if ( self::is_paid_backed( $order ) ) {
-			wp_send_json_success( array( 'state' => 'paid', 'final' => true ) );
+			wp_send_json_success(
+				array(
+					'state' => 'paid',
+					'final' => true,
+				)
+			);
 		}
 		if ( $order->has_status( 'refunded' ) ) {
-			wp_send_json_success( array( 'state' => 'refunded', 'final' => true ) );
+			wp_send_json_success(
+				array(
+					'state' => 'refunded',
+					'final' => true,
+				)
+			);
 		}
 		if ( $order->has_status( array( 'failed', 'cancelled' ) ) ) {
-			wp_send_json_success( array( 'state' => 'expired', 'final' => true ) );
+			wp_send_json_success(
+				array(
+					'state' => 'expired',
+					'final' => true,
+				)
+			);
 		}
 
-		// Delegate the AinePay query + status mapping to the order sync service (M5).
-		if ( class_exists( 'Ainepay_Order_Sync' ) ) {
-			Ainepay_Order_Sync::refresh_order( $order );
-			$order = wc_get_order( $order_id );
+		// Collapse repeated requests for the same authorised order into one backend
+		// refresh per short window. Throttled callers still receive the current local
+		// state below, so normal browser polling remains responsive without amplifying
+		// a held order key into synchronous AinePay traffic.
+		if ( class_exists( 'Ainepay_Order_Sync' ) && ! self::status_order_throttled( $order_id ) ) {
+			$refresh_lock = self::acquire_status_refresh_lock( $order_id );
+			if ( $refresh_lock ) {
+				try {
+					Ainepay_Order_Sync::refresh_order( $order );
+					$order = wc_get_order( $order_id );
+				} finally {
+					self::release_status_refresh_lock( $refresh_lock );
+				}
+			}
 		}
 
 		$state = 'pending';
@@ -227,7 +264,7 @@ class Ainepay_Payment_Display {
 	 * works for guests) plus a nonce. Delegates to the cancel-first coordinator,
 	 * so the backend decides whether the order can be cancelled — a customer can
 	 * only cancel an unpaid (INIT) order, and a settle race that already paid is
-		 * reported as paid instead of being lost as cancelled.
+	 * reported as paid instead of being lost as cancelled.
 	 *
 	 * @return void
 	 */
@@ -313,7 +350,12 @@ class Ainepay_Payment_Display {
 				break;
 		}
 
-		wp_send_json_success( array( 'message' => $message, 'reload' => $reload ) );
+		wp_send_json_success(
+			array(
+				'message' => $message,
+				'reload'  => $reload,
+			)
+		);
 	}
 
 	/**
@@ -340,6 +382,67 @@ class Ainepay_Payment_Display {
 	private static function is_unbacked_success( $order ) {
 		return $order->has_status( array( 'processing', 'completed' ) )
 			&& 'PAID' !== strtoupper( (string) $order->get_meta( '_ainepay_status' ) );
+	}
+
+	/**
+	 * Best-effort per-IP burst limit for the unauthenticated status endpoint.
+	 * This runs before order lookup; the per-order cooldown below remains the
+	 * primary backend-amplification guard for clients that possess a valid key.
+	 *
+	 * @return bool True when the caller has exceeded its burst budget.
+	 */
+	private static function status_ip_throttled() {
+		$key  = 'ainepay_st_ip_' . md5( self::client_ip() );
+		$hits = (int) get_transient( $key );
+		if ( $hits >= self::STATUS_IP_BURST ) {
+			return true;
+		}
+		set_transient( $key, $hits + 1, self::STATUS_THROTTLE_SECONDS );
+		return false;
+	}
+
+	/**
+	 * Permit at most one authoritative refresh per order in the cooldown window.
+	 * A repeated caller is not rejected: ajax_status() returns the locally cached
+	 * state, avoiding both a poor UI and another synchronous backend request.
+	 *
+	 * @param int $order_id WooCommerce order id (already authorised by order key).
+	 * @return bool True when a recent request already claimed the refresh window.
+	 */
+	private static function status_order_throttled( $order_id ) {
+		$key = 'ainepay_st_o_' . (int) $order_id;
+		if ( get_transient( $key ) ) {
+			return true;
+		}
+		set_transient( $key, 1, self::STATUS_THROTTLE_SECONDS );
+		return false;
+	}
+
+	/**
+	 * Claim a non-blocking single-flight lock for one status refresh. The transient
+	 * cooldown handles normal repeats; this DB lock closes the small get/set race
+	 * when multiple PHP workers arrive simultaneously.
+	 *
+	 * @param int $order_id WooCommerce order id.
+	 * @return string|false Lock name on success, false when another worker owns it.
+	 */
+	private static function acquire_status_refresh_lock( $order_id ) {
+		global $wpdb;
+		$scope = isset( $wpdb->prefix ) ? (string) $wpdb->prefix : '';
+		$name  = 'ainepay_status_' . substr( hash( 'sha256', $scope . ':' . (int) $order_id ), 0, 40 );
+		$got   = $wpdb->get_var( $wpdb->prepare( 'SELECT GET_LOCK(%s, 0)', $name ) );
+		return ( '1' === (string) $got ) ? $name : false;
+	}
+
+	/**
+	 * Release a status-refresh single-flight lock.
+	 *
+	 * @param string $name Lock name returned by acquire_status_refresh_lock().
+	 * @return void
+	 */
+	private static function release_status_refresh_lock( $name ) {
+		global $wpdb;
+		$wpdb->get_var( $wpdb->prepare( 'SELECT RELEASE_LOCK(%s)', $name ) );
 	}
 
 	/**

@@ -48,8 +48,8 @@ class Ainepay_Gateway extends WC_Payment_Gateway {
 
 		// AinePay icon: only set when the asset actually exists, to avoid a
 		// broken image at checkout. Themes/merchants can override via the filter.
-		$icon_rel  = 'assets/images/ainepay-mark.svg';
-		$icon_url  = file_exists( AINEPAY_WC_PLUGIN_DIR . $icon_rel ) ? AINEPAY_WC_PLUGIN_URL . $icon_rel : '';
+		$icon_rel   = 'assets/images/ainepay-mark.svg';
+		$icon_url   = file_exists( AINEPAY_WC_PLUGIN_DIR . $icon_rel ) ? AINEPAY_WC_PLUGIN_URL . $icon_rel : '';
 		$this->icon = apply_filters( 'ainepay_gateway_icon', $icon_url );
 
 		$this->init_form_fields();
@@ -178,7 +178,7 @@ class Ainepay_Gateway extends WC_Payment_Gateway {
 		$merchant_id    = (string) $this->get_option( 'merchant_id' );
 		$probe_user_id  = 'probe_' . substr( hash( 'sha256', home_url( '/' ) . '|ainepay-probe' ), 0, 12 );
 		$probe_order_id = 'wc_probe_' . substr( md5( uniqid( 'ainepay', true ) ), 0, 16 );
-		$first = $coins[0];
+		$first          = $coins[0];
 
 		$result = $this->get_api_client()->create_pay_order(
 			array(
@@ -249,7 +249,8 @@ class Ainepay_Gateway extends WC_Payment_Gateway {
 					/* translators: %s: error message. */
 					__( 'AinePay: could not load supported coins (%s). Saved other settings.', 'ainepay-for-woocommerce' ),
 					$result->get_error_message()
-				)
+				),
+				true
 			);
 			return;
 		}
@@ -281,20 +282,20 @@ class Ainepay_Gateway extends WC_Payment_Gateway {
 		$this->form_fields = array(
 
 			// --- General ---------------------------------------------------
-			'enabled'        => array(
+			'enabled'           => array(
 				'title'   => __( 'Enable/Disable', 'ainepay-for-woocommerce' ),
 				'type'    => 'checkbox',
 				'label'   => __( 'Enable AinePay', 'ainepay-for-woocommerce' ),
 				'default' => 'no',
 			),
-			'title'          => array(
+			'title'             => array(
 				'title'       => __( 'Title', 'ainepay-for-woocommerce' ),
 				'type'        => 'text',
 				'description' => __( 'Payment method title shown to customers at checkout.', 'ainepay-for-woocommerce' ),
 				'default'     => __( 'Pay with USDT / USDC (AinePay)', 'ainepay-for-woocommerce' ),
 				'desc_tip'    => true,
 			),
-			'description'    => array(
+			'description'       => array(
 				'title'       => __( 'Description', 'ainepay-for-woocommerce' ),
 				'type'        => 'textarea',
 				'description' => __( 'Payment method description shown to customers at checkout.', 'ainepay-for-woocommerce' ),
@@ -303,18 +304,18 @@ class Ainepay_Gateway extends WC_Payment_Gateway {
 			),
 
 			// --- API connection -------------------------------------------
-			'api_section'    => array(
+			'api_section'       => array(
 				'title' => __( 'API connection', 'ainepay-for-woocommerce' ),
 				'type'  => 'title',
 			),
-			'api_base_url'   => array(
+			'api_base_url'      => array(
 				'title'       => __( 'API Base URL', 'ainepay-for-woocommerce' ),
 				'type'        => 'text',
-				'description' => __( 'AinePay API endpoint. Leave as default for production.', 'ainepay-for-woocommerce' ),
+				'description' => __( 'Trusted AinePay HTTPS endpoint. Production uses api.ainepay.com; additional test hosts require an explicit developer allowlist filter.', 'ainepay-for-woocommerce' ),
 				'default'     => self::DEFAULT_API_BASE,
 				'desc_tip'    => true,
 			),
-			'api_key'        => array(
+			'api_key'           => array(
 				'title'       => __( 'API Key', 'ainepay-for-woocommerce' ),
 				'type'        => 'text',
 				/* translators: do not hard-validate the prefix; it may evolve. */
@@ -322,21 +323,21 @@ class Ainepay_Gateway extends WC_Payment_Gateway {
 				'default'     => '',
 				'desc_tip'    => true,
 			),
-			'api_secret'     => array(
+			'api_secret'        => array(
 				'title'       => __( 'API Secret', 'ainepay-for-woocommerce' ),
 				'type'        => 'password',
 				'description' => __( 'Your AinePay API signing secret (used only to sign requests locally; never sent). Usually starts with "sv_".', 'ainepay-for-woocommerce' ),
 				'default'     => '',
 				'desc_tip'    => true,
 			),
-			'notify_secret'  => array(
+			'notify_secret'     => array(
 				'title'       => __( 'Notify Secret', 'ainepay-for-woocommerce' ),
 				'type'        => 'password',
 				'description' => __( 'Your AinePay notification secret (used to verify webhook signatures). Different from the API Secret. Usually starts with "sv_".', 'ainepay-for-woocommerce' ),
 				'default'     => '',
 				'desc_tip'    => true,
 			),
-			'merchant_id'    => array(
+			'merchant_id'       => array(
 				'title'       => __( 'Merchant ID', 'ainepay-for-woocommerce' ),
 				'type'        => 'text',
 				'description' => __( 'Your AinePay Merchant ID, found in the AinePay dashboard. Used for address verification and user identification.', 'ainepay-for-woocommerce' ),
@@ -345,12 +346,12 @@ class Ainepay_Gateway extends WC_Payment_Gateway {
 			),
 
 			// --- Collection & contracts -----------------------------------
-			'address_section' => array(
+			'address_section'   => array(
 				'title'       => __( 'Collection address & contracts', 'ainepay-for-woocommerce' ),
 				'type'        => 'title',
 				'description' => __( 'Used to verify that the payment address returned by AinePay is deterministically derived from your collection address. Get these values from the AinePay dashboard.', 'ainepay-for-woocommerce' ),
 			),
-			'collect_address' => array(
+			'collect_address'   => array(
 				'title'       => __( 'Collection Address', 'ainepay-for-woocommerce' ),
 				'type'        => 'text',
 				'description' => __( 'Your registered (ACTIVE) collection address on AinePay. Funds settle here.', 'ainepay-for-woocommerce' ),
@@ -364,7 +365,7 @@ class Ainepay_Gateway extends WC_Payment_Gateway {
 				'default'     => self::DEFAULT_FACTORY,
 				'desc_tip'    => true,
 			),
-			'forwarder_impl' => array(
+			'forwarder_impl'    => array(
 				'title'       => __( 'Forwarder Implementation Address', 'ainepay-for-woocommerce' ),
 				'type'        => 'text',
 				'description' => __( 'Forwarder implementation (proxy template) contract address (Ethereum mainnet default pre-filled).', 'ainepay-for-woocommerce' ),
@@ -378,7 +379,7 @@ class Ainepay_Gateway extends WC_Payment_Gateway {
 				'default'     => self::DEFAULT_VERSION,
 				'desc_tip'    => true,
 			),
-			'chain_id'       => array(
+			'chain_id'          => array(
 				'title'       => __( 'Chain ID', 'ainepay-for-woocommerce' ),
 				'type'        => 'number',
 				'description' => __( 'EVM chain ID used in address derivation (Ethereum mainnet = 1).', 'ainepay-for-woocommerce' ),
@@ -387,12 +388,12 @@ class Ainepay_Gateway extends WC_Payment_Gateway {
 			),
 
 			// --- Coins -----------------------------------------------------
-			'coins_section'  => array(
+			'coins_section'     => array(
 				'title'       => __( 'Supported coins', 'ainepay-for-woocommerce' ),
 				'type'        => 'title',
 				'description' => __( 'Coins are loaded from AinePay (/api/merchant/pay/info) when you save. Customers can choose from enabled coin/chain pairs at checkout.', 'ainepay-for-woocommerce' ),
 			),
-			'enabled_coins'  => array(
+			'enabled_coins'     => array(
 				'title'             => __( 'Enabled coins', 'ainepay-for-woocommerce' ),
 				'type'              => 'multiselect',
 				'class'             => 'wc-enhanced-select',
@@ -404,18 +405,18 @@ class Ainepay_Gateway extends WC_Payment_Gateway {
 			),
 
 			// --- Advanced --------------------------------------------------
-			'advanced_section' => array(
+			'advanced_section'  => array(
 				'title' => __( 'Advanced', 'ainepay-for-woocommerce' ),
 				'type'  => 'title',
 			),
-			'poll_interval'  => array(
+			'poll_interval'     => array(
 				'title'       => __( 'Order polling interval (seconds)', 'ainepay-for-woocommerce' ),
 				'type'        => 'number',
 				'description' => __( 'How often to actively query AinePay for pending order status. Webhooks only speed up updates; polling provides final consistency.', 'ainepay-for-woocommerce' ),
 				'default'     => '60',
 				'desc_tip'    => true,
 			),
-			'debug'          => array(
+			'debug'             => array(
 				'title'       => __( 'Debug logging', 'ainepay-for-woocommerce' ),
 				'type'        => 'checkbox',
 				'label'       => __( 'Enable debug logging', 'ainepay-for-woocommerce' ),
@@ -432,15 +433,15 @@ class Ainepay_Gateway extends WC_Payment_Gateway {
 	 * @return array<string,string> Map of "COIN|CHAIN" => label.
 	 */
 	private function get_cached_coin_options() {
-		$cached = get_option( 'ainepay_supported_coins', array() );
+		$cached  = get_option( 'ainepay_supported_coins', array() );
 		$options = array();
 		if ( is_array( $cached ) ) {
 			foreach ( $cached as $entry ) {
 				if ( empty( $entry['coin'] ) || empty( $entry['chain'] ) ) {
 					continue;
 				}
-				$key   = $entry['coin'] . '|' . $entry['chain'];
-				$label = isset( $entry['chainName'] ) && '' !== $entry['chainName']
+				$key             = $entry['coin'] . '|' . $entry['chain'];
+				$label           = isset( $entry['chainName'] ) && '' !== $entry['chainName']
 					? sprintf( '%s (%s)', $entry['coin'], $entry['chainName'] )
 					: sprintf( '%s / %s', $entry['coin'], $entry['chain'] );
 				$options[ $key ] = $label;
@@ -458,9 +459,9 @@ class Ainepay_Gateway extends WC_Payment_Gateway {
 	 */
 	public function generate_password_html( $key, $data ) {
 		if ( in_array( $key, $this->secret_fields, true ) && '' !== (string) $this->get_option( $key ) ) {
-			$data['custom_attributes']                  = isset( $data['custom_attributes'] ) ? $data['custom_attributes'] : array();
-			$data['custom_attributes']['placeholder']   = self::SECRET_MASK;
-			$data['custom_attributes']['autocomplete']  = 'new-password';
+			$data['custom_attributes']                 = isset( $data['custom_attributes'] ) ? $data['custom_attributes'] : array();
+			$data['custom_attributes']['placeholder']  = self::SECRET_MASK;
+			$data['custom_attributes']['autocomplete'] = 'new-password';
 			// Render with an empty value; leaving it blank on save preserves the stored secret.
 			$this->settings[ $key ] = '';
 		}
@@ -483,9 +484,36 @@ class Ainepay_Gateway extends WC_Payment_Gateway {
 		return $value;
 	}
 
-	/* ---------------------------------------------------------------------
+	/**
+	 * Validate the API origin before WooCommerce persists it. Invalid input keeps
+	 * the last known-safe value and surfaces an admin settings error. The API client
+	 * repeats this validation at request time to cover direct option/DB mutation.
+	 *
+	 * @param string $key   Field key.
+	 * @param string $value Posted value.
+	 * @return string Validated canonical API base URL.
+	 */
+	public function validate_api_base_url_field( $key, $value ) {
+		$validated = Ainepay_Api_Client::validate_base_url( $value );
+		if ( ! is_wp_error( $validated ) ) {
+			return $validated;
+		}
+
+		if ( class_exists( 'WC_Admin_Settings' ) ) {
+			WC_Admin_Settings::add_error(
+				__( 'API Base URL was not saved. Use the trusted AinePay HTTPS endpoint.', 'ainepay-for-woocommerce' )
+			);
+		}
+
+		$previous = Ainepay_Api_Client::validate_base_url( $this->get_option( $key, self::DEFAULT_API_BASE ) );
+		return is_wp_error( $previous ) ? self::DEFAULT_API_BASE : $previous;
+	}
+
+	/*
+	---------------------------------------------------------------------
 	 * Checkout & order placement (M3)
-	 * ------------------------------------------------------------------- */
+	 * -------------------------------------------------------------------
+	 */
 
 	/**
 	 * The coin/chain combinations enabled by the merchant and still supported
@@ -618,7 +646,7 @@ class Ainepay_Gateway extends WC_Payment_Gateway {
 			return $this->payment_error( __( 'This store currency is not supported by AinePay.', 'ainepay-for-woocommerce' ) );
 		}
 
-		$selected = $this->get_posted_coin();
+		$selected   = $this->get_posted_coin();
 		$coin_chain = $this->parse_coin_value( $selected );
 		if ( null === $coin_chain ) {
 			return $this->payment_error( __( 'Invalid coin selection.', 'ainepay-for-woocommerce' ) );
@@ -645,7 +673,7 @@ class Ainepay_Gateway extends WC_Payment_Gateway {
 		}
 
 		$existing_ainepay_order_id = (string) $order->get_meta( '_ainepay_order_id' );
-		$existing_address         = (string) $order->get_meta( '_ainepay_address' );
+		$existing_address          = (string) $order->get_meta( '_ainepay_address' );
 		if ( '' !== $existing_ainepay_order_id ) {
 			if ( '' !== $existing_address && $order->has_status( array( 'pending', 'on-hold' ) ) ) {
 				return array(
@@ -659,7 +687,8 @@ class Ainepay_Gateway extends WC_Payment_Gateway {
 					/* translators: %s: URL to start a new shop order. */
 					__( 'This order already has an AinePay payment. <a href="%s">Start a new order</a> if you need to pay again.', 'ainepay-for-woocommerce' ),
 					esc_url( $this->get_new_order_url( $order ) )
-				)
+				),
+				true
 			);
 		}
 
@@ -680,11 +709,61 @@ class Ainepay_Gateway extends WC_Payment_Gateway {
 			return $this->payment_error( __( 'Could not build a valid order reference.', 'ainepay-for-woocommerce' ) );
 		}
 
-		$result = $this->get_api_client()->create_pay_order(
-			array_merge( array( 'orderId' => $ainepay_order_id ), $base_params )
-		);
+		// Serialise the local create-and-persist window. The backend is idempotent by
+		// orderId and returns the existing order on a retry; this lock prevents normal
+		// concurrent checkout requests from making duplicate remote calls, while the
+		// deterministic orderId still recovers a remote-success/local-crash retry.
+		$creation_lock = self::acquire_payment_creation_lock( $order_id );
+		if ( ! $creation_lock ) {
+			return $this->payment_error( __( 'This payment is already being started. Please wait a moment and try again.', 'ainepay-for-woocommerce' ) );
+		}
+
+		// Re-read after acquiring the lock: another worker may have completed the
+		// AinePay create and local save while this request was waiting.
+		$order = wc_get_order( $order_id );
+		if ( ! $order ) {
+			self::release_payment_creation_lock( $creation_lock );
+			return $this->payment_error( __( 'Order not found.', 'ainepay-for-woocommerce' ) );
+		}
+		$locked_order_id = (string) $order->get_meta( '_ainepay_order_id' );
+		$locked_address  = (string) $order->get_meta( '_ainepay_address' );
+		if ( '' !== $locked_order_id ) {
+			self::release_payment_creation_lock( $creation_lock );
+			if ( $locked_order_id === $ainepay_order_id
+				&& ( '' !== $locked_address || 'PAID' === strtoupper( (string) $order->get_meta( '_ainepay_status' ) ) ) ) {
+				return array(
+					'result'   => 'success',
+					'redirect' => $this->get_return_url( $order ),
+				);
+			}
+			return $this->payment_error( __( 'This order already has an AinePay payment. Please start a new order.', 'ainepay-for-woocommerce' ) );
+		}
+
+		$create_params = array_merge( array( 'orderId' => $ainepay_order_id ), $base_params );
+		$result        = $this->get_api_client()->create_pay_order( $create_params );
 		if ( is_wp_error( $result ) ) {
-			return $this->payment_error( $result->get_error_message() );
+			self::release_payment_creation_lock( $creation_lock );
+			// API/transport messages are not trusted presentation text. They may
+			// contain backend HTML, URLs or internal diagnostics, so checkout always
+			// receives a fixed local plain-text message; details stay in WC logs.
+			return $this->payment_error(
+				__( 'AinePay could not start the payment. Please try again or choose another payment method.', 'ainepay-for-woocommerce' ),
+				false
+			);
+		}
+
+		$binding = Ainepay_Api_Client::validate_create_response( $result, $create_params );
+		if ( is_wp_error( $binding ) ) {
+			Ainepay_Logger::error(
+				'Create-order response binding failed.',
+				array(
+					'wc_order_id'       => $order_id,
+					'expected_order_id' => $ainepay_order_id,
+					'response_order_id' => isset( $result['orderId'] ) ? (string) $result['orderId'] : '',
+				)
+			);
+			self::release_payment_creation_lock( $creation_lock );
+			return $this->payment_error( __( 'AinePay returned inconsistent payment details. Please contact the store owner.', 'ainepay-for-woocommerce' ) );
 		}
 
 		$status  = isset( $result['status'] ) ? strtoupper( (string) $result['status'] ) : '';
@@ -715,6 +794,7 @@ class Ainepay_Gateway extends WC_Payment_Gateway {
 			if ( WC()->cart ) {
 				WC()->cart->empty_cart();
 			}
+			self::release_payment_creation_lock( $creation_lock );
 
 			return array(
 				'result'   => 'success',
@@ -723,6 +803,7 @@ class Ainepay_Gateway extends WC_Payment_Gateway {
 		}
 
 		if ( '' === $address ) {
+			self::release_payment_creation_lock( $creation_lock );
 			return $this->payment_error( __( 'AinePay did not return a payment address. Please start a new order if the payment window has expired.', 'ainepay-for-woocommerce' ) );
 		}
 
@@ -749,6 +830,7 @@ class Ainepay_Gateway extends WC_Payment_Gateway {
 				)
 			);
 			$order->update_status( 'failed', __( 'AinePay payment address failed local verification.', 'ainepay-for-woocommerce' ) );
+			self::release_payment_creation_lock( $creation_lock );
 			return $this->payment_error( __( 'Payment address verification failed. Please contact the store owner.', 'ainepay-for-woocommerce' ) );
 		}
 
@@ -777,11 +859,37 @@ class Ainepay_Gateway extends WC_Payment_Gateway {
 		if ( WC()->cart ) {
 			WC()->cart->empty_cart();
 		}
+		self::release_payment_creation_lock( $creation_lock );
 
 		return array(
 			'result'   => 'success',
 			'redirect' => $this->get_return_url( $order ),
 		);
+	}
+
+	/**
+	 * Acquire a site-scoped per-Woo-order creation lock with a bounded wait.
+	 *
+	 * @param int $order_id WooCommerce order id.
+	 * @return string|false Lock name on success, false on contention/failure.
+	 */
+	private static function acquire_payment_creation_lock( $order_id ) {
+		global $wpdb;
+		$scope = isset( $wpdb->prefix ) ? (string) $wpdb->prefix : '';
+		$name  = 'ainepay_create_' . substr( hash( 'sha256', $scope . ':' . (int) $order_id ), 0, 40 );
+		$got   = $wpdb->get_var( $wpdb->prepare( 'SELECT GET_LOCK(%s, %d)', $name, 5 ) );
+		return ( '1' === (string) $got ) ? $name : false;
+	}
+
+	/**
+	 * Release a payment-creation lock.
+	 *
+	 * @param string $name Lock name returned by acquire_payment_creation_lock().
+	 * @return void
+	 */
+	private static function release_payment_creation_lock( $name ) {
+		global $wpdb;
+		$wpdb->get_var( $wpdb->prepare( 'SELECT RELEASE_LOCK(%s)', $name ) );
 	}
 
 	/**
@@ -802,11 +910,13 @@ class Ainepay_Gateway extends WC_Payment_Gateway {
 	/**
 	 * Add a checkout error notice and return the failure result.
 	 *
-	 * @param string $message Error message for the customer.
+	 * @param string $message    Error message for the customer.
+	 * @param bool   $allow_html Whether trusted plugin-generated HTML is required.
 	 * @return array
 	 */
-	private function payment_error( $message ) {
-		wc_add_notice( wp_kses_post( $message ), 'error' );
+	private function payment_error( $message, $allow_html = false ) {
+		$notice = $allow_html ? wp_kses_post( $message ) : sanitize_text_field( $message );
+		wc_add_notice( $notice, 'error' );
 		return array( 'result' => 'failure' );
 	}
 }

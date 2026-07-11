@@ -56,6 +56,9 @@ class Ainepay_Test_Env {
 	/** @var string client IP reported by WC_Geolocation::get_ip_address(). */
 	public static $client_ip = '203.0.113.7';
 
+	/** @var int Current multisite blog id. */
+	public static $blog_id = 1;
+
 	/** @var bool force every scheduling call to fail (return 0/false). */
 	public static $schedule_fails = false;
 
@@ -64,6 +67,12 @@ class Ainepay_Test_Env {
 
 	/** @var array<int,array<string,mixed>> wc_get_orders() query arguments. */
 	public static $order_queries = array();
+
+	/** @var array<int,array{url:string,args:array}> outbound safe HTTP calls. */
+	public static $remote_requests = array();
+
+	/** @var mixed Response returned by wp_safe_remote_request(). */
+	public static $remote_response = null;
 
 	/**
 	 * Restore a clean slate.
@@ -80,9 +89,15 @@ class Ainepay_Test_Env {
 		self::$lock_result      = '1';
 		self::$gateway          = null;
 		self::$client_ip        = '203.0.113.7';
+		self::$blog_id          = 1;
 		self::$schedule_fails   = false;
 		self::$last_template    = null;
 		self::$order_queries    = array();
+		self::$remote_requests  = array();
+		self::$remote_response  = null;
+		if ( isset( $GLOBALS['wpdb'] ) && isset( $GLOBALS['wpdb']->prefix ) ) {
+			$GLOBALS['wpdb']->prefix = 'wp_';
+		}
 	}
 
 	/**
@@ -162,9 +177,56 @@ if ( ! function_exists( 'wp_unslash' ) ) {
 	}
 }
 
+if ( ! function_exists( 'get_current_blog_id' ) ) {
+	function get_current_blog_id() {
+		return Ainepay_Test_Env::$blog_id;
+	}
+}
+
 if ( ! function_exists( 'sanitize_text_field' ) ) {
 	function sanitize_text_field( $value ) {
 		return is_string( $value ) ? trim( $value ) : $value;
+	}
+}
+
+if ( ! function_exists( 'esc_url_raw' ) ) {
+	function esc_url_raw( $url, $protocols = null ) {
+		$url = filter_var( (string) $url, FILTER_SANITIZE_URL );
+		if ( false === filter_var( $url, FILTER_VALIDATE_URL ) ) {
+			return '';
+		}
+		$scheme = parse_url( $url, PHP_URL_SCHEME );
+		if ( is_array( $protocols ) && ! in_array( strtolower( (string) $scheme ), $protocols, true ) ) {
+			return '';
+		}
+		return $url;
+	}
+}
+
+if ( ! function_exists( 'wp_parse_url' ) ) {
+	function wp_parse_url( $url, $component = -1 ) {
+		return parse_url( $url, $component );
+	}
+}
+
+if ( ! function_exists( 'wp_safe_remote_request' ) ) {
+	function wp_safe_remote_request( $url, $args = array() ) {
+		Ainepay_Test_Env::$remote_requests[] = array( 'url' => (string) $url, 'args' => $args );
+		return null === Ainepay_Test_Env::$remote_response
+			? new WP_Error( 'test_transport', 'No test transport configured.' )
+			: Ainepay_Test_Env::$remote_response;
+	}
+}
+
+if ( ! function_exists( 'wp_remote_retrieve_response_code' ) ) {
+	function wp_remote_retrieve_response_code( $response ) {
+		return isset( $response['response']['code'] ) ? (int) $response['response']['code'] : 0;
+	}
+}
+
+if ( ! function_exists( 'wp_remote_retrieve_body' ) ) {
+	function wp_remote_retrieve_body( $response ) {
+		return isset( $response['body'] ) ? (string) $response['body'] : '';
 	}
 }
 
@@ -225,6 +287,14 @@ class Ainepay_Test_Json_Response extends RuntimeException {
 if ( ! function_exists( 'wp_verify_nonce' ) ) {
 	function wp_verify_nonce( $nonce, $action ) {
 		return 'valid-' . $action === (string) $nonce;
+	}
+}
+
+if ( ! function_exists( 'check_ajax_referer' ) ) {
+	function check_ajax_referer( $action, $query_arg = false, $stop = true ) {
+		$key   = $query_arg ? (string) $query_arg : '_ajax_nonce';
+		$nonce = isset( $_POST[ $key ] ) ? (string) $_POST[ $key ] : '';
+		return wp_verify_nonce( $nonce, $action );
 	}
 }
 
@@ -446,6 +516,8 @@ if ( ! class_exists( 'WC_Geolocation' ) ) {
  * In-memory $wpdb honouring just GET_LOCK / RELEASE_LOCK.
  */
 class Ainepay_Fake_WPDB {
+	/** @var string WordPress table prefix used to scope advisory locks. */
+	public $prefix = 'wp_';
 
 	public function prepare( $query, ...$args ) {
 		return $query . '|' . implode( ',', $args );

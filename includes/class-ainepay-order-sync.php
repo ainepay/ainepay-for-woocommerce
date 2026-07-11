@@ -31,9 +31,9 @@ class Ainepay_Order_Sync {
 	const MAX_IDEMPOTENCY_KEYS = 20;
 
 	// Persistent cancel-sync (Action Scheduler) retry policy.
-	const CANCEL_SYNC_HOOK     = 'ainepay_cancel_sync';
-	const VERIFY_PAID_HOOK     = 'ainepay_verify_paid';
-	const REFUND_VERIFY_HOOK   = 'ainepay_refund_verify';
+	const CANCEL_SYNC_HOOK           = 'ainepay_cancel_sync';
+	const VERIFY_PAID_HOOK           = 'ainepay_verify_paid';
+	const REFUND_VERIFY_HOOK         = 'ainepay_refund_verify';
 	const CANCEL_MAX_ATTEMPTS        = 8;  // ~24h total with the backoff ladder below.
 	const REFUND_MAX_ATTEMPTS        = 28; // Reachable non-REFUND checks only; ~1 week once delay caps at 6h.
 	const REFUND_OUTAGE_MAX_ATTEMPTS = 8; // Consecutive backend-unreachable checks; separate from merchant grace.
@@ -124,7 +124,7 @@ class Ainepay_Order_Sync {
 			// a PAID-backed order, do NOT short-circuit: fall through to re-query and let
 			// the authoritative status be applied. The query below still confirms the real
 			// status, so a spurious body can at worst trigger one extra no-op query.
-			$claimed_status = isset( $fields['status'] ) ? strtoupper( (string) $fields['status'] ) : '';
+			$claimed_status            = isset( $fields['status'] ) ? strtoupper( (string) $fields['status'] ) : '';
 			$paid_backed_refund_notice = ( 'REFUND' === $claimed_status && self::is_paid_backed_order( $order ) );
 			if ( self::is_settled_and_backed( $order ) && ! $paid_backed_refund_notice ) {
 				return self::RESULT_OK;
@@ -328,8 +328,8 @@ class Ainepay_Order_Sync {
 	 * worker, so callers gate the cancel entry on this.
 	 *
 	 * An empty or INIT backing is still treated as cancellable and proceeds to the
-		 * backend, which re-checks under its row lock so a settle race that already
-		 * paid is reported as paid rather than lost as cancelled. This guards
+	 * backend, which re-checks under its row lock so a settle race that already
+	 * paid is reported as paid rather than lost as cancelled. This guards
 	 * the UI and the entry points against a *known* stale state; it deliberately
 	 * does NOT replace the backend's authoritative decision for INIT orders.
 	 *
@@ -435,12 +435,12 @@ class Ainepay_Order_Sync {
 				// Backend confirmed INIT->CANCEL (or idempotent repeat). A CANCEL can
 				// never apply to a paid order because the backend rejects non-INIT
 				// cancels (code 26). Two cases:
-				//  - Not yet cancelled (cancel-first button / webhook): transition to
-				//    cancelled now. `_ainepay_status` is already CANCEL (set above), so
-				//    gate_premature_restock() lets WC core restock on this transition.
-				//  - Already cancelled (a native/bulk admin cancel whose stock restore
-				//    gate_premature_restock() held back until the backend confirmed):
-				//    the transition will not re-fire, so release the held stock now.
+				// - Not yet cancelled (cancel-first button / webhook): transition to
+				// cancelled now. `_ainepay_status` is already CANCEL (set above), so
+				// gate_premature_restock() lets WC core restock on this transition.
+				// - Already cancelled (a native/bulk admin cancel whose stock restore
+				// gate_premature_restock() held back until the backend confirmed):
+				// the transition will not re-fire, so release the held stock now.
 				if ( ! $order->has_status( 'cancelled' ) ) {
 					$order->update_status( 'cancelled', __( 'AinePay order cancelled.', 'ainepay-for-woocommerce' ) );
 				} else {
@@ -489,7 +489,13 @@ class Ainepay_Order_Sync {
 		}
 
 		$order->save();
-		Ainepay_Logger::debug( 'Applied AinePay status', array( 'orderId' => (string) $order->get_meta( '_ainepay_order_id' ), 'status' => $status ) );
+		Ainepay_Logger::debug(
+			'Applied AinePay status',
+			array(
+				'orderId' => (string) $order->get_meta( '_ainepay_order_id' ),
+				'status'  => $status,
+			)
+		);
 	}
 
 	/**
@@ -614,7 +620,7 @@ class Ainepay_Order_Sync {
 			// query. The backend never returns success for a non-INIT order, so a
 				// genuine success can never cancel a paid order.
 			if ( is_array( $result ) ) {
-				$rid    = isset( $result['orderId'] ) ? (string) $result['orderId'] : '';
+				$rid     = isset( $result['orderId'] ) ? (string) $result['orderId'] : '';
 				$rstatus = strtoupper( isset( $result['status'] ) ? (string) $result['status'] : '' );
 				if ( $rid === $oid && 'CANCEL' === $rstatus ) {
 					self::apply_status( $order, $result, array() );
@@ -650,7 +656,13 @@ class Ainepay_Order_Sync {
 			);
 			$order->update_meta_data( '_ainepay_cancel_failed', '1' );
 			$order->save();
-			Ainepay_Logger::error( 'Cancel permanent failure', array( 'orderId' => $oid, 'msg' => $result->get_error_message() ) );
+			Ainepay_Logger::error(
+				'Cancel permanent failure',
+				array(
+					'orderId' => $oid,
+					'msg'     => $result->get_error_message(),
+				)
+			);
 			return self::CANCEL_FAILED;
 		} finally {
 			self::release_lock( $lock );
@@ -902,7 +914,14 @@ class Ainepay_Order_Sync {
 		// so there is no loop. on-hold keeps the same stock reservation as processing,
 		// so no stock side effect occurs here.
 		if ( '' === $oid ) {
-			Ainepay_Logger::error( 'Unbacked success transition with no AinePay order id; reverting to on-hold', array( 'order_id' => $order_id, 'from' => $from, 'to' => $to ) );
+			Ainepay_Logger::error(
+				'Unbacked success transition with no AinePay order id; reverting to on-hold',
+				array(
+					'order_id' => $order_id,
+					'from'     => $from,
+					'to'       => $to,
+				)
+			);
 			if ( $order->has_status( array( 'processing', 'completed' ) ) ) {
 				$order->update_status(
 					'on-hold',
@@ -915,7 +934,14 @@ class Ainepay_Order_Sync {
 		// Unbacked promotion. Flag + note synchronously (cheap), then verify out of
 		// band. No HTTP here: do not block the save or brick a manual override.
 		$order->add_order_note( __( 'This AinePay order was moved to a paid state without a confirmed AinePay payment; verifying with AinePay…', 'ainepay-for-woocommerce' ) );
-		Ainepay_Logger::error( 'Unbacked success transition; scheduling async verification', array( 'orderId' => $oid, 'from' => $from, 'to' => $to ) );
+		Ainepay_Logger::error(
+			'Unbacked success transition; scheduling async verification',
+			array(
+				'orderId' => $oid,
+				'from'    => $from,
+				'to'      => $to,
+			)
+		);
 		self::enqueue_paid_verify( $order, $oid );
 	}
 
@@ -973,7 +999,13 @@ class Ainepay_Order_Sync {
 				&& 'PAID' === strtoupper( (string) $fresh->get_meta( '_ainepay_status' ) ) ) {
 				self::clear_paid_verify( $fresh );
 			} elseif ( $fresh ) {
-				Ainepay_Logger::error( 'Paid-invariant verify saw PAID but could not back the order; scheduling retry', array( 'orderId' => $oid, 'result' => $result ) );
+				Ainepay_Logger::error(
+					'Paid-invariant verify saw PAID but could not back the order; scheduling retry',
+					array(
+						'orderId' => $oid,
+						'result'  => $result,
+					)
+				);
 				self::schedule_paid_verify( $fresh, $oid );
 			}
 			return;
@@ -994,7 +1026,13 @@ class Ainepay_Order_Sync {
 					'on-hold',
 					__( 'Order reverted to on-hold: AinePay confirmed this order is not paid, so it must not be treated as paid.', 'ainepay-for-woocommerce' )
 				);
-				Ainepay_Logger::error( 'Reverted unbacked success transition (async-verified not paid)', array( 'orderId' => $oid, 'backend' => $status ) );
+				Ainepay_Logger::error(
+					'Reverted unbacked success transition (async-verified not paid)',
+					array(
+						'orderId' => $oid,
+						'backend' => $status,
+					)
+				);
 			}
 			if ( $fresh ) {
 				self::clear_paid_verify( $fresh );
@@ -1044,7 +1082,7 @@ class Ainepay_Order_Sync {
 			self::alert_paid_unverified( $order, $oid );
 			return;
 		}
-		$attempts++;
+		++$attempts;
 		$order->update_meta_data( '_ainepay_paid_verify_attempts', $attempts );
 		$order->save();
 
@@ -1259,7 +1297,7 @@ class Ainepay_Order_Sync {
 			self::alert_cancel_stuck( $order, $oid );
 			return;
 		}
-		$attempts++;
+		++$attempts;
 		$order->update_meta_data( '_ainepay_cancel_attempts', $attempts );
 		$order->update_meta_data( '_ainepay_cancel_pending', '1' );
 		$order->save();
@@ -1427,7 +1465,7 @@ class Ainepay_Order_Sync {
 	 * @return void
 	 */
 	public static function verify_refund( $oid ) {
-		$oid   = (string) $oid;
+		$oid = (string) $oid;
 		if ( '' === $oid ) {
 			return;
 		}
@@ -1488,7 +1526,7 @@ class Ainepay_Order_Sync {
 				self::alert_refund_stuck( $order, $oid );
 				return;
 			}
-			$attempts++;
+			++$attempts;
 			$order->update_meta_data( '_ainepay_refund_merchant_attempts', $attempts );
 		} elseif ( 'outage' === $reason ) {
 			$attempts = (int) $order->get_meta( '_ainepay_refund_outage_attempts' );
@@ -1499,7 +1537,7 @@ class Ainepay_Order_Sync {
 				self::alert_refund_unreachable( $order, $oid );
 				return;
 			}
-			$attempts++;
+			++$attempts;
 			$order->update_meta_data( '_ainepay_refund_outage_attempts', $attempts );
 		} else {
 			$attempts = 1; // First check soon; no persisted budget is consumed.
@@ -1715,7 +1753,11 @@ class Ainepay_Order_Sync {
 	 * @return string
 	 */
 	private static function lock_name( $ainepay_order_id ) {
-		return 'ainepay_' . substr( hash( 'sha256', $ainepay_order_id ), 0, 40 );
+		global $wpdb;
+		$prefix  = isset( $wpdb->prefix ) ? (string) $wpdb->prefix : '';
+		$blog_id = function_exists( 'get_current_blog_id' ) ? (int) get_current_blog_id() : 0;
+		$scope   = $prefix . '|' . $blog_id . '|' . (string) $ainepay_order_id;
+		return 'ainepay_' . substr( hash( 'sha256', $scope ), 0, 40 );
 	}
 
 	/**

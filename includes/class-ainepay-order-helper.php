@@ -120,6 +120,7 @@ class Ainepay_Order_Helper {
 	 * Derive the AinePay orderId for a WooCommerce order id.
 	 *
 	 * @param int|string $wc_order_id WooCommerce order id.
+	 * @param int        $attempt     Legacy retry attempt suffix; new orders use zero.
 	 * @return string
 	 */
 	public static function derive_order_id( $wc_order_id, $attempt = 0 ) {

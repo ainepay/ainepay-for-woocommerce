@@ -56,10 +56,59 @@ class Ainepay_Api_Client {
 	 * @param int    $recv_window Receive window (ms).
 	 */
 	public function __construct( $base_url, $api_key, $api_secret, $recv_window = self::DEFAULT_RECV_WINDOW ) {
-		$this->base_url    = untrailingslashit( trim( (string) $base_url ) );
+		$this->base_url    = trim( (string) $base_url );
 		$this->api_key     = trim( (string) $api_key );
 		$this->api_secret  = (string) $api_secret;
 		$this->recv_window = $recv_window > 0 ? (int) $recv_window : self::DEFAULT_RECV_WINDOW;
+	}
+
+	/**
+	 * Validate and canonicalise an API base URL before credentials can be sent.
+	 * Production trusts only the official AinePay host. Additional public HTTPS
+	 * hosts (for an explicit test environment) require the allowlist filter; the
+	 * safe HTTP transport below still rejects loopback/private destinations.
+	 *
+	 * @param string $base_url Candidate API base URL.
+	 * @return string|WP_Error Canonical URL or a fail-closed validation error.
+	 */
+	public static function validate_base_url( $base_url ) {
+		$base_url = trim( (string) $base_url );
+		if ( '' === $base_url ) {
+			return new WP_Error( 'ainepay_api_url_invalid', __( 'AinePay API base URL is not configured.', 'ainepay-for-woocommerce' ) );
+		}
+
+		$sanitised = esc_url_raw( $base_url, array( 'https' ) );
+		$parts     = $sanitised ? wp_parse_url( $sanitised ) : false;
+		if ( ! is_array( $parts )
+			|| 'https' !== strtolower( isset( $parts['scheme'] ) ? (string) $parts['scheme'] : '' )
+			|| empty( $parts['host'] )
+			|| isset( $parts['user'] )
+			|| isset( $parts['pass'] )
+			|| isset( $parts['query'] )
+			|| isset( $parts['fragment'] )
+			|| ( isset( $parts['port'] ) && 443 !== (int) $parts['port'] )
+			|| ( isset( $parts['path'] ) && '' !== $parts['path'] && '/' !== $parts['path'] ) ) {
+			return new WP_Error( 'ainepay_api_url_invalid', __( 'AinePay API base URL must be a trusted HTTPS origin without credentials, query parameters, fragments, or a path.', 'ainepay-for-woocommerce' ) );
+		}
+
+		$host          = strtolower( rtrim( (string) $parts['host'], '.' ) );
+		$allowed_hosts = (array) apply_filters( 'ainepay_allowed_api_hosts', array( 'api.ainepay.com' ) );
+		$allowed_hosts = array_values(
+			array_filter(
+				array_map(
+					function ( $allowed ) {
+						return strtolower( rtrim( trim( (string) $allowed ), '.' ) );
+					},
+					$allowed_hosts
+				),
+				'strlen'
+			)
+		);
+		if ( ! in_array( $host, $allowed_hosts, true ) ) {
+			return new WP_Error( 'ainepay_api_url_untrusted', __( 'AinePay API base URL host is not trusted.', 'ainepay-for-woocommerce' ) );
+		}
+
+		return 'https://' . $host;
 	}
 
 	/**
@@ -79,6 +128,53 @@ class Ainepay_Api_Client {
 	 */
 	public function create_pay_order( array $params ) {
 		return $this->request( 'POST', '/api/merchant/pay', $params, true );
+	}
+
+	/**
+	 * Bind a create-order response to the exact request that produced it. orderId
+	 * is mandatory because it is the backend idempotency key. The user, coin and
+	 * amount are also mandatory so an immediate PAID response cannot release goods
+	 * without explicit funds binding. Other echoed fields are checked when present.
+	 *
+	 * @param array $response Create-order response data.
+	 * @param array $expected Expected orderId/userId/coin/chain/qty/collectAddress.
+	 * @return true|WP_Error True when safely bound, otherwise fail-closed error.
+	 */
+	public static function validate_create_response( array $response, array $expected ) {
+		$expected_order_id = isset( $expected['orderId'] ) ? (string) $expected['orderId'] : '';
+		$response_order_id = isset( $response['orderId'] ) ? (string) $response['orderId'] : '';
+		if ( '' === $expected_order_id || ! hash_equals( $expected_order_id, $response_order_id ) ) {
+			return new WP_Error( 'ainepay_create_response_mismatch', __( 'AinePay returned an order that did not match this checkout.', 'ainepay-for-woocommerce' ) );
+		}
+		$status = isset( $response['status'] ) ? strtoupper( (string) $response['status'] ) : '';
+		if ( ! in_array( $status, array( 'INIT', 'PENDING', 'PAID' ), true ) ) {
+			return new WP_Error( 'ainepay_create_response_mismatch', __( 'AinePay returned an invalid initial payment status.', 'ainepay-for-woocommerce' ) );
+		}
+
+		foreach ( array( 'userId', 'coin' ) as $field ) {
+			if ( ! isset( $response[ $field ] )
+				|| ! isset( $expected[ $field ] )
+				|| (string) $response[ $field ] !== (string) $expected[ $field ] ) {
+				return new WP_Error( 'ainepay_create_response_mismatch', __( 'AinePay returned payment details that did not match this checkout.', 'ainepay-for-woocommerce' ) );
+			}
+		}
+
+		if ( ! isset( $response['qty'] ) || ! isset( $expected['qty'] )
+			|| (string) $response['qty'] !== (string) $expected['qty'] ) {
+			return new WP_Error( 'ainepay_create_response_mismatch', __( 'AinePay returned a payment amount that did not match this checkout.', 'ainepay-for-woocommerce' ) );
+		}
+
+		if ( isset( $response['chain'] ) && isset( $expected['chain'] )
+			&& (string) $response['chain'] !== (string) $expected['chain'] ) {
+			return new WP_Error( 'ainepay_create_response_mismatch', __( 'AinePay returned payment details that did not match this checkout.', 'ainepay-for-woocommerce' ) );
+		}
+
+		if ( isset( $response['collectAddress'] ) && isset( $expected['collectAddress'] )
+			&& strtolower( (string) $response['collectAddress'] ) !== strtolower( (string) $expected['collectAddress'] ) ) {
+			return new WP_Error( 'ainepay_create_response_mismatch', __( 'AinePay returned a collection address that did not match this checkout.', 'ainepay-for-woocommerce' ) );
+		}
+
+		return true;
 	}
 
 	/**
@@ -127,13 +223,14 @@ class Ainepay_Api_Client {
 	 * @return array|WP_Error
 	 */
 	private function request( $method, $path, array $params, $signed ) {
-		if ( '' === $this->base_url ) {
-			return new WP_Error( 'ainepay_config', __( 'AinePay API base URL is not configured.', 'ainepay-for-woocommerce' ) );
+		$base_url = self::validate_base_url( $this->base_url );
+		if ( is_wp_error( $base_url ) ) {
+			return $base_url;
 		}
 
 		$method  = strtoupper( $method );
 		$is_get  = ( 'GET' === $method );
-		$url     = $this->base_url . $path;
+		$url     = $base_url . $path;
 		$headers = array( 'Accept' => 'application/json' );
 		$body    = null;
 
@@ -146,7 +243,7 @@ class Ainepay_Api_Client {
 			}
 		} else {
 			$headers['Content-Type'] = 'application/x-www-form-urlencoded';
-			$body = $this->build_query( $pairs );
+			$body                    = $this->build_query( $pairs );
 		}
 
 		if ( $signed ) {
@@ -181,7 +278,7 @@ class Ainepay_Api_Client {
 			)
 		);
 
-		$response = wp_remote_request( $url, $args );
+		$response = wp_safe_remote_request( $url, $args );
 
 		if ( is_wp_error( $response ) ) {
 			Ainepay_Logger::error( 'API transport error: ' . $response->get_error_message(), array( 'path' => $path ) );
@@ -219,7 +316,13 @@ class Ainepay_Api_Client {
 		$json   = json_decode( $raw, true );
 
 		if ( ! is_array( $json ) ) {
-			Ainepay_Logger::error( 'API non-JSON response', array( 'path' => $path, 'status' => $status ) );
+			Ainepay_Logger::error(
+				'API non-JSON response',
+				array(
+					'path'   => $path,
+					'status' => $status,
+				)
+			);
 			return new WP_Error(
 				'ainepay_bad_response',
 				/* translators: %d: HTTP status code. */
@@ -231,14 +334,29 @@ class Ainepay_Api_Client {
 		$code    = isset( $json['code'] ) ? (int) $json['code'] : -1;
 
 		if ( ! $success || 0 !== $code ) {
-			$msg = isset( $json['msg'] ) && '' !== $json['msg']
+			$remote_msg = isset( $json['msg'] ) && '' !== $json['msg']
 				? (string) $json['msg']
 				: __( 'AinePay returned an error.', 'ainepay-for-woocommerce' );
 			Ainepay_Logger::error(
 				'API error response',
-				array( 'path' => $path, 'status' => $status, 'code' => $code, 'msg' => $msg )
+				array(
+					'path'   => $path,
+					'status' => $status,
+					'code'   => $code,
+					'msg'    => $remote_msg,
+				)
 			);
-			return new WP_Error( 'ainepay_api_error', $msg, array( 'code' => $code, 'status' => $status ) );
+			// Remote text is diagnostic-only. Never expose backend-controlled HTML,
+			// URLs or internal details through WP_Error consumers (checkout, AJAX,
+			// order notes, or third-party integrations).
+			return new WP_Error(
+				'ainepay_api_error',
+				__( 'AinePay could not process the request.', 'ainepay-for-woocommerce' ),
+				array(
+					'code'   => $code,
+					'status' => $status,
+				)
+			);
 		}
 
 		return isset( $json['data'] ) && is_array( $json['data'] ) ? $json['data'] : array();

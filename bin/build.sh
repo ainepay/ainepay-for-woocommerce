@@ -55,9 +55,12 @@ cp -R \
 
 echo "==> Stripping non-runtime artifacts from vendor"
 find "${BUILD_DIR}/vendor" -type d \( -name 'tests' -o -name 'test' -o -name 'docs' \) -prune -exec rm -rf {} + 2>/dev/null || true
-find "${BUILD_DIR}/vendor" -type f \( -name '*.md' -o -name 'phpunit.xml*' -o -name '.gitignore' \) -delete 2>/dev/null || true
+find "${BUILD_DIR}/vendor" -type f \( -name '*.md' -o -name 'phpunit.xml*' -o -name '.gitignore' -o -name 'composer.lock' \) -delete 2>/dev/null || true
 
 echo "==> Creating zip"
 ( cd "${ROOT}/dist" && zip -rq "${ZIP_PATH}" "${SLUG}" )
+
+echo "==> Verifying release contents and version consistency"
+"${ROOT}/bin/verify-release.sh"
 
 echo "==> Done: ${ZIP_PATH}"

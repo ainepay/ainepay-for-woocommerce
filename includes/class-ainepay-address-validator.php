@@ -64,7 +64,7 @@ class Ainepay_Address_Validator {
 		$dest_hex    = self::normalize_address_hex( $destination );
 
 		// init code hash (EIP-1167 minimal proxy).
-		$init_code     = self::PROXY_PREFIX . $impl_hex . self::PROXY_SUFFIX;
+		$init_code      = self::PROXY_PREFIX . $impl_hex . self::PROXY_SUFFIX;
 		$init_code_hash = Keccak::hash( self::hex2bin_strict( $init_code ), 256 );
 
 		// salt = keccak256( abi.encode(...) ), 5 static 32-byte words.
@@ -124,7 +124,7 @@ class Ainepay_Address_Validator {
 			$hex = substr( $hex, 2 );
 		}
 		if ( 40 !== strlen( $hex ) || ! ctype_xdigit( $hex ) ) {
-			throw new InvalidArgumentException( 'Invalid address: ' . $address );
+			throw new InvalidArgumentException( 'Invalid address: ' . esc_html( $address ) );
 		}
 		return $hex;
 	}
@@ -139,11 +139,11 @@ class Ainepay_Address_Validator {
 	private static function uint256_hex( $value ) {
 		$dec = (string) $value;
 		if ( '' === $dec || ! ctype_digit( $dec ) ) {
-			throw new InvalidArgumentException( 'Invalid uint256: ' . $value );
+			throw new InvalidArgumentException( 'Invalid uint256: ' . esc_html( $value ) );
 		}
 		$hex = self::dec2hex( $dec );
 		if ( strlen( $hex ) > 64 ) {
-			throw new InvalidArgumentException( 'uint256 overflow: ' . $value );
+			throw new InvalidArgumentException( 'uint256 overflow: ' . esc_html( $value ) );
 		}
 		return str_pad( $hex, 64, '0', STR_PAD_LEFT );
 	}
