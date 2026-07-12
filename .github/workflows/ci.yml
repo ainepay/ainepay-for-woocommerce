@@ -94,6 +94,7 @@ jobs:
         run: |
           git clone --depth 1 --branch "${{ matrix.wc }}" https://github.com/woocommerce/woocommerce.git /tmp/woocommerce
           composer install --working-dir="$WC_TESTS_DIR" --prefer-dist --no-interaction
+          php "$WC_TESTS_DIR/bin/generate-feature-config.php"
       - run: composer test:wc-integration
 
   release:
