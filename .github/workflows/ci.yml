@@ -71,7 +71,7 @@ jobs:
             php: '8.3'
     env:
       WP_TESTS_DIR: /tmp/wordpress-tests-lib
-      WC_TESTS_DIR: /tmp/woocommerce
+      WC_TESTS_DIR: /tmp/woocommerce/plugins/woocommerce
     steps:
       - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2
@@ -91,7 +91,9 @@ jobs:
           tar -xzf /tmp/wordpress.tar.gz -C /tmp
           sed -i "s/youremptytestdbnamehere/wordpress_test/; s/yourusernamehere/root/; s/yourpasswordhere//; s|dirname( __FILE__ ) . '/src/'|'/tmp/wordpress/'|" "$WP_TESTS_DIR/wp-tests-config.php"
       - name: Install WooCommerce source
-        run: git clone --depth 1 --branch "${{ matrix.wc }}" https://github.com/woocommerce/woocommerce.git "$WC_TESTS_DIR"
+        run: |
+          git clone --depth 1 --branch "${{ matrix.wc }}" https://github.com/woocommerce/woocommerce.git /tmp/woocommerce
+          composer install --working-dir="$WC_TESTS_DIR" --prefer-dist --no-interaction
       - run: composer test:wc-integration
 
   release:
