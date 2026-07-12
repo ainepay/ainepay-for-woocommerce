@@ -221,7 +221,7 @@ class Ainepay_Webhook_Handler {
 		}
 		$body = stream_get_contents( $handle, self::MAX_BODY_BYTES + 1 );
 		if ( $owned ) {
-			fclose( $handle );
+			fclose( $handle ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- The request input stream is not managed by WP_Filesystem and must be closed when opened here.
 		}
 		return is_string( $body ) ? $body : false;
 	}

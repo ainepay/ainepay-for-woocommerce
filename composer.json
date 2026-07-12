@@ -30,6 +30,7 @@
 		"bacon/bacon-qr-code": "^2.0"
 	},
 	"require-dev": {
+		"doctrine/instantiator": "^1.5",
 		"phpcompatibility/phpcompatibility-wp": "^2.1",
 		"phpunit/phpunit": "^9.6",
 		"wp-coding-standards/wpcs": "^3.3"

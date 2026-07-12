@@ -80,6 +80,8 @@ jobs:
           coverage: none
           tools: composer:v2
       - run: composer install --prefer-dist --no-interaction
+      - name: Install Subversion
+        run: sudo apt-get update && sudo apt-get install --yes subversion
       - name: Install WordPress test library
         run: |
           svn export --quiet "https://develop.svn.wordpress.org/tags/${{ matrix.wp }}/tests/phpunit/includes/" "$WP_TESTS_DIR/includes"
