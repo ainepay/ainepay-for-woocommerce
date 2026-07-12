@@ -159,8 +159,9 @@ class Ainepay_Api_Client {
 			}
 		}
 
-		if ( ! isset( $response['qty'] ) || ! isset( $expected['qty'] )
-			|| (string) $response['qty'] !== (string) $expected['qty'] ) {
+		$expected_qty = isset( $expected['qty'] ) ? self::normalize_qty( $expected['qty'] ) : null;
+		$response_qty = isset( $response['qty'] ) ? self::normalize_qty( $response['qty'] ) : null;
+		if ( null === $expected_qty || null === $response_qty || $response_qty !== $expected_qty ) {
 			return new WP_Error( 'ainepay_create_response_mismatch', __( 'AinePay returned a payment amount that did not match this checkout.', 'ainepay-for-woocommerce' ) );
 		}
 
@@ -175,6 +176,33 @@ class Ainepay_Api_Client {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Canonicalize a plain decimal amount string so scale alone cannot break the
+	 * funds-binding equality check: the plugin sends 2-decimal amounts ("10.00")
+	 * while the backend echoes them at its own fixed 8-decimal scale
+	 * ("10.00000000"). String-based on purpose — no float round-trip, so no
+	 * precision loss. Anything that is not a plain non-negative decimal (sign,
+	 * exponent, grouping, spaces, empty) returns null and fails the binding
+	 * closed.
+	 *
+	 * @param mixed $qty Raw qty value.
+	 * @return string|null Canonical decimal string, or null when malformed.
+	 */
+	private static function normalize_qty( $qty ) {
+		$qty = (string) $qty;
+		if ( ! preg_match( '/^[0-9]+(\.[0-9]+)?$/', $qty ) ) {
+			return null;
+		}
+		if ( false !== strpos( $qty, '.' ) ) {
+			$qty = rtrim( rtrim( $qty, '0' ), '.' );
+		}
+		$qty = ltrim( $qty, '0' );
+		if ( '' === $qty || '.' === $qty[0] ) {
+			$qty = '0' . $qty;
+		}
+		return $qty;
 	}
 
 	/**

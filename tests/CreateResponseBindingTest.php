@@ -78,6 +78,43 @@ class CreateResponseBindingTest extends TestCase {
 		);
 	}
 
+	public function test_backend_scale_padded_qty_echo_is_accepted() {
+		// The real backend echoes amounts at its own fixed 8-decimal scale
+		// (OrderVo: setScale(8).toPlainString(), so "12.34" comes back as
+		// "12.3400000000"-style). Scale alone must never break the funds binding.
+		$response = array_merge( $this->expected(), array( 'status' => 'INIT', 'qty' => '12.34000000' ) );
+		$this->assertTrue( Ainepay_Api_Client::validate_create_response( $response, $this->expected() ) );
+	}
+
+	public function test_numerically_different_qty_is_rejected() {
+		// One satoshi-scale unit off is still a different amount.
+		$response = array_merge( $this->expected(), array( 'status' => 'INIT', 'qty' => '12.34000001' ) );
+		$this->assertInstanceOf( WP_Error::class, Ainepay_Api_Client::validate_create_response( $response, $this->expected() ) );
+	}
+
+	/**
+	 * @dataProvider malformed_qty_provider
+	 * @param string $qty Malformed qty value.
+	 */
+	public function test_malformed_qty_formats_are_rejected( $qty ) {
+		// The comparison is string-normalizing, not numeric-casting: anything that
+		// is not a plain non-negative decimal must fail the binding closed.
+		$response = array_merge( $this->expected(), array( 'status' => 'INIT', 'qty' => $qty ) );
+		$this->assertInstanceOf( WP_Error::class, Ainepay_Api_Client::validate_create_response( $response, $this->expected() ) );
+	}
+
+	public function malformed_qty_provider() {
+		return array(
+			'empty'          => array( '' ),
+			'space padded'   => array( ' 12.34' ),
+			'comma decimal'  => array( '12,34' ),
+			'negative'       => array( '-12.34' ),
+			'exponent'       => array( '1.234e1' ),
+			'double dot'     => array( '12.34.00' ),
+			'trailing dot'   => array( '12.' ),
+		);
+	}
+
 	/**
 	 * @dataProvider mismatched_echo_provider
 	 * @param string $field Mismatched response field.

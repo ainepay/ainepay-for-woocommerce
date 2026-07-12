@@ -758,8 +758,11 @@ class Ainepay_Gateway extends WC_Payment_Gateway {
 				'Create-order response binding failed.',
 				array(
 					'wc_order_id'       => $order_id,
+					'reason'            => $binding->get_error_message(),
 					'expected_order_id' => $ainepay_order_id,
 					'response_order_id' => isset( $result['orderId'] ) ? (string) $result['orderId'] : '',
+					'expected_qty'      => $qty,
+					'response_qty'      => isset( $result['qty'] ) ? (string) $result['qty'] : '',
 				)
 			);
 			self::release_payment_creation_lock( $creation_lock );
