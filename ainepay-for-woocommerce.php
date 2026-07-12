@@ -14,8 +14,8 @@
  * Domain Path:       /languages
  * Requires Plugins:  woocommerce
  *
- * WC requires at least: 7.0
- * WC tested up to:      9.4
+ * WC requires at least: 8.0
+ * WC tested up to:      10.9
  *
  * @package AinePay\WooCommerce
  */

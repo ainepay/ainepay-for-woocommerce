@@ -52,7 +52,7 @@ and query order status. It is required for the plugin to function.
 * AinePay also sends signed webhooks to `https://your-site/ainepay/notify`.
 
 Service provider: AinePay — https://ainepay.com
-Terms: https://ainepay.com/terms — Privacy: https://ainepay.com/privacy
+Terms: https://ainepay.com/en/terms — Privacy: https://ainepay.com/en/privacy
 
 == Installation ==
 

@@ -17,7 +17,7 @@ class Ainepay_Plugin {
 	/**
 	 * Minimum supported WooCommerce version.
 	 */
-	const MIN_WC_VERSION = '7.0';
+	const MIN_WC_VERSION = '8.0';
 
 	/**
 	 * Singleton instance.
