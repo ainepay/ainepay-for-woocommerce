@@ -86,9 +86,9 @@ jobs:
         run: |
           svn export --quiet "https://develop.svn.wordpress.org/tags/${{ matrix.wp }}/tests/phpunit/includes/" "$WP_TESTS_DIR/includes"
           svn export --quiet "https://develop.svn.wordpress.org/tags/${{ matrix.wp }}/tests/phpunit/data/" "$WP_TESTS_DIR/data"
+          curl -sSLo "$WP_TESTS_DIR/wp-tests-config.php" "https://develop.svn.wordpress.org/tags/${{ matrix.wp }}/wp-tests-config-sample.php"
           curl -sSLo /tmp/wordpress.tar.gz "https://wordpress.org/wordpress-${{ matrix.wp }}.tar.gz"
           tar -xzf /tmp/wordpress.tar.gz -C /tmp
-          cp "$WP_TESTS_DIR/includes/wp-tests-config-sample.php" "$WP_TESTS_DIR/wp-tests-config.php"
           sed -i "s/youremptytestdbnamehere/wordpress_test/; s/yourusernamehere/root/; s/yourpasswordhere//; s|dirname( __FILE__ ) . '/src/'|'/tmp/wordpress/'|" "$WP_TESTS_DIR/wp-tests-config.php"
       - name: Install WooCommerce source
         run: git clone --depth 1 --branch "${{ matrix.wc }}" https://github.com/woocommerce/woocommerce.git "$WC_TESTS_DIR"
