@@ -14,8 +14,12 @@ if [ -z "${WC_TESTS_DIR:-}" ] || [ ! -f "$WC_TESTS_DIR/tests/legacy/bootstrap.ph
 	exit 1
 fi
 
+# Set BOTH toggle variables each pass: newer WooCommerce legacy bootstraps key off
+# DISABLE_HPOS (empty = HPOS on), but WC 8.0's only enables HPOS when HPOS is truthy
+# and ignores DISABLE_HPOS entirely — with only one variable set, the "HPOS" pass
+# silently runs legacy storage twice on WC 8.0.
 echo "Running WooCommerce integration tests with legacy order storage..."
-DISABLE_HPOS=1 "$phpunit" -c "$root/phpunit.integration.xml.dist"
+HPOS= DISABLE_HPOS=1 "$phpunit" -c "$root/phpunit.integration.xml.dist"
 
 echo "Running WooCommerce integration tests with HPOS..."
-DISABLE_HPOS= "$phpunit" -c "$root/phpunit.integration.xml.dist"
+HPOS=1 DISABLE_HPOS= "$phpunit" -c "$root/phpunit.integration.xml.dist"
