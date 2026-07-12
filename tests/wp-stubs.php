@@ -752,6 +752,10 @@ class WC_Order {
 		return $this->id;
 	}
 
+	public function get_data_store() {
+		return new Ainepay_Fake_Order_Data_Store();
+	}
+
 	/**
 	 * Test hook used by the wc_increase_stock_levels() stub.
 	 *
@@ -764,6 +768,40 @@ class WC_Order {
 endif;
 
 /**
+ * Fake order data store: maps the internal `_order_stock_reduced` prop to the same
+ * meta the WC_Order stub stores, mirroring real WooCommerce's bool<->'yes' bridging.
+ */
+if ( ! class_exists( 'Ainepay_Fake_Order_Data_Store' ) ) :
+class Ainepay_Fake_Order_Data_Store {
+
+	/**
+	 * @param int|WC_Order $order Order id or instance.
+	 * @return bool
+	 */
+	public function get_stock_reduced( $order ) {
+		$order = is_object( $order ) ? $order : wc_get_order( $order );
+		if ( ! $order ) {
+			return false;
+		}
+		return in_array( strtolower( (string) $order->get_meta( '_order_stock_reduced' ) ), array( 'yes', '1', 'true' ), true );
+	}
+
+	/**
+	 * @param int|WC_Order $order Order id or instance.
+	 * @param bool         $set   New value.
+	 * @return void
+	 */
+	public function set_stock_reduced( $order, $set ) {
+		$order = is_object( $order ) ? $order : wc_get_order( $order );
+		if ( ! $order ) {
+			return;
+		}
+		$order->update_meta_data( '_order_stock_reduced', $set ? 'yes' : '' );
+	}
+}
+endif;
+
+/**
  * Fake order line item.
  */
 class Ainepay_Fake_Item {
@@ -771,12 +809,37 @@ class Ainepay_Fake_Item {
 	/** @var Ainepay_Fake_Product|null */
 	private $product;
 
-	public function __construct( $product ) {
+	/** @var array<string,mixed> */
+	private $meta;
+
+	/**
+	 * @param Ainepay_Fake_Product|null $product Product.
+	 * @param array<string,mixed>       $meta    Item meta (e.g. _reduced_stock).
+	 */
+	public function __construct( $product, array $meta = array() ) {
 		$this->product = $product;
+		$this->meta    = $meta;
 	}
 
 	public function get_product() {
 		return $this->product;
+	}
+
+	/**
+	 * @param string $type Item type to test.
+	 * @return bool
+	 */
+	public function is_type( $type ) {
+		return 'line_item' === $type;
+	}
+
+	/**
+	 * @param string $key    Meta key.
+	 * @param bool   $single Return single value.
+	 * @return mixed
+	 */
+	public function get_meta( $key, $single = true ) {
+		return array_key_exists( $key, $this->meta ) ? $this->meta[ $key ] : '';
 	}
 }
 

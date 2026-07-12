@@ -1237,24 +1237,94 @@ class Ainepay_Order_Sync {
 	}
 
 	/**
+	 * Action (woocommerce_order_status_cancelled, priority 20): re-assert the
+	 * order's stock-reduced marker after WC core has cleared it on a cancel whose
+	 * physical restore gate_premature_restock() blocked.
+	 *
+	 * WC's wc_maybe_increase_stock_levels (priority 10) calls wc_increase_stock_levels()
+	 * — which our gate short-circuits, so the items stay physically reduced — but then,
+	 * when the marker was set, runs set_stock_reduced( false ). That desyncs the order
+	 * marker from reality: the stock is still reduced, yet the marker says otherwise,
+	 * which would make release_held_stock() skip the later restore and leak the
+	 * reservation. Runs at priority 20 so it always follows WC's clear.
+	 *
+	 * Re-asserts only when BOTH the gate is holding this cancel AND the stock is still
+	 * physically reduced (some line item still carries `_reduced_stock`). The physical
+	 * check is essential: an order legitimately restocked before this cancel (e.g. an
+	 * admin on-hold -> pending transition, whose wc_maybe_increase_stock_levels the gate
+	 * does NOT block because it is scoped to the cancelled status) has no reduced items,
+	 * and re-marking it reduced would make a later PAID repair skip re-reduction and
+	 * oversell.
+	 *
+	 * @param int $order_id WooCommerce order id.
+	 * @return void
+	 */
+	public static function reassert_held_stock_marker( $order_id ) {
+		$order = wc_get_order( $order_id );
+		if ( ! $order instanceof WC_Order ) {
+			return;
+		}
+		// gate_premature_restock() returns false only while it is holding this cancel;
+		// that is exactly when WC blocked the physical restore but cleared the marker.
+		if ( false !== self::gate_premature_restock( true, $order ) ) {
+			return;
+		}
+		if ( ! self::order_stock_is_physically_reduced( $order ) ) {
+			return;
+		}
+		$order->get_data_store()->set_stock_reduced( $order, true );
+	}
+
+	/**
+	 * Ground truth for whether an order's stock is still physically reduced: WooCommerce
+	 * stamps `_reduced_stock` on each line item when it reduces stock and deletes that
+	 * meta when it restores the item, so a surviving `_reduced_stock` means the units are
+	 * still held. Mirrors the line-item scoping WC uses in wc_increase_stock_levels().
+	 *
+	 * @param WC_Order $order WooCommerce order.
+	 * @return bool
+	 */
+	private static function order_stock_is_physically_reduced( $order ) {
+		foreach ( $order->get_items() as $item ) {
+			if ( is_callable( array( $item, 'is_type' ) ) && ! $item->is_type( 'line_item' ) ) {
+				continue;
+			}
+			// Float compare, not int: WC types this value int|float (wc_stock_amount()
+			// lets the woocommerce_stock_amount filter return floats) and its own
+			// restore path treats any truthy value as reduced, so an (int) cast would
+			// misread a fractional quantity like 0.5 as "not reduced".
+			if ( (float) $item->get_meta( '_reduced_stock', true ) > 0 ) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * Release the stock that gate_premature_restock() held back, once a native/bulk
 	 * cancel is confirmed CANCEL by the backend. The order is already in the
 	 * cancelled status here, so WC's own restock transition will not fire again.
 	 * No-op unless stock is currently reduced, so it is safe to call more than once.
 	 *
+	 * `_order_stock_reduced` is an internal WooCommerce datastore prop, so it must be
+	 * read/written through the data store (get_meta() routes it through a getter that
+	 * returns a bool, not the legacy 'yes' string, and behaves differently under HPOS).
+	 *
 	 * @param WC_Order $order WooCommerce order.
 	 * @return void
 	 */
 	private static function release_held_stock( $order ) {
-		if ( 'yes' !== strtolower( (string) $order->get_meta( '_order_stock_reduced' ) ) ) {
+		$store = $order->get_data_store();
+		if ( ! $store->get_stock_reduced( $order ) ) {
 			return;
 		}
 		if ( function_exists( 'wc_increase_stock_levels' ) ) {
 			wc_increase_stock_levels( $order );
 		}
-		// Keep our in-memory copy consistent with the data-store clear so the
-		// trailing apply_status() save() does not re-persist the reduced flag.
-		$order->update_meta_data( '_order_stock_reduced', '' );
+		// Clear the marker (passing the order object so the in-memory copy is updated
+		// too) to match the restored stock, so the trailing apply_status() save() does
+		// not re-persist a reduced flag.
+		$store->set_stock_reduced( $order, false );
 	}
 
 	/**

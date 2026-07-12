@@ -95,6 +95,10 @@ class Ainepay_Plugin {
 		// keep WC and AinePay eventually consistent without ever marking a paid
 		// order cancelled.
 		add_action( 'woocommerce_order_status_cancelled', array( 'Ainepay_Order_Sync', 'on_wc_cancelled' ), 10, 1 );
+		// Priority 20: after WC core's wc_maybe_increase_stock_levels (10) has cleared
+		// the stock-reduced marker, re-assert it for a gate-held cancel so the marker
+		// matches the still-reduced physical stock.
+		add_action( 'woocommerce_order_status_cancelled', array( 'Ainepay_Order_Sync', 'reassert_held_stock_marker' ), 20, 1 );
 		add_action( Ainepay_Order_Sync::CANCEL_SYNC_HOOK, array( 'Ainepay_Order_Sync', 'handle_cancel_sync' ), 10, 1 );
 
 		// Manual two-step refund closure (full refunds only): the gateway has no

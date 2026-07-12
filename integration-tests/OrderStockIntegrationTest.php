@@ -123,6 +123,34 @@ class OrderStockIntegrationTest extends WC_Unit_Test_Case {
 		$this->assertSame( 5, wc_get_product( $product_id )->get_stock_quantity() );
 	}
 
+	public function test_cancel_after_legit_restock_does_not_falsely_hold_then_paid_re_reduces() {
+		// Regression: the priority-20 marker re-assert must key off physical stock, not
+		// just the gate. Here the order is legitimately restocked BEFORE it is cancelled
+		// (on-hold -> pending fires WC's restock, which the cancelled-scoped gate does
+		// not block), so no unit is actually held. If the re-assert falsely marked it
+		// reduced, the later PAID repair's wc_maybe_reduce_stock_levels would skip the
+		// re-reduction and oversell.
+		list( $order, $product_id ) = $this->reduced_stock_order();
+
+		// Legitimate restock: pending restores stock and clears the reduced marker.
+		$order->update_status( 'pending' );
+		$order = wc_get_order( $order->get_id() );
+		$this->assertSame( 5, wc_get_product( $product_id )->get_stock_quantity() );
+		$this->assertFalse( (bool) $order->get_data_store()->get_stock_reduced( $order->get_id() ) );
+
+		// A native cancel now must NOT re-assert a reduced marker: nothing is held.
+		$order->update_status( 'cancelled' );
+		$order = wc_get_order( $order->get_id() );
+		$this->assertFalse( (bool) $order->get_data_store()->get_stock_reduced( $order->get_id() ) );
+
+		// Authoritative PAID must physically re-reduce stock exactly once (no oversell).
+		$this->apply_status( $order, 'PAID' );
+		$order = wc_get_order( $order->get_id() );
+		$this->assertTrue( $order->has_status( array( 'processing', 'completed' ) ) );
+		$this->assertSame( 4, wc_get_product( $product_id )->get_stock_quantity() );
+		$this->assertTrue( (bool) $order->get_data_store()->get_stock_reduced( $order->get_id() ) );
+	}
+
 	public function test_paid_repair_from_cancelled_keeps_stock_reduced_exactly_once() {
 		list( $order, $product_id ) = $this->reduced_stock_order();
 

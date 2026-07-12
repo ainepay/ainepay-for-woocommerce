@@ -30,7 +30,7 @@ class OrderSyncCancelTest extends TestCase {
 	 * @param string              $pm     Payment method.
 	 * @return WC_Order
 	 */
-	private function order( array $meta = array( '_ainepay_order_id' => 'OID' ), $status = 'on-hold', $pm = 'ainepay' ) {
+	private function order( array $meta = array( '_ainepay_order_id' => 'OID' ), $status = 'on-hold', $pm = 'ainepay', array $items = array() ) {
 		static $id = 2000;
 		$id++;
 		return Ainepay_Test_Env::add_order(
@@ -40,9 +40,19 @@ class OrderSyncCancelTest extends TestCase {
 					'status'         => $status,
 					'payment_method' => $pm,
 					'meta'           => $meta,
+					'items'          => $items,
 				)
 			)
 		);
+	}
+
+	/**
+	 * A line item WooCommerce marks as having reduced stock (physical ground truth).
+	 *
+	 * @return Ainepay_Fake_Item
+	 */
+	private function reduced_item() {
+		return new Ainepay_Fake_Item( new Ainepay_Fake_Product( false ), array( '_reduced_stock' => 1 ) );
 	}
 
 	/**
@@ -294,6 +304,81 @@ class OrderSyncCancelTest extends TestCase {
 		$client = Ainepay_Test_Env::set_gateway( null, array( 'orderId' => 'OID', 'status' => 'CANCEL' ) );
 		Ainepay_Order_Sync::handle_cancel_sync( 'OID' );
 		$this->assertSame( 1, $client->cancel_calls );
+	}
+
+	/* --- premature-restock marker re-assertion ---------------------------- */
+
+	public function test_reassert_restores_marker_wc_core_cleared_for_gate_held_cancel() {
+		// WC core's wc_maybe_increase_stock_levels clears the stock-reduced marker on
+		// the cancelled transition even though our gate blocked the physical restore
+		// (the item still carries _reduced_stock). The priority-20 re-assert must set
+		// it back to true so the held stock is not later treated as already released.
+		$order = $this->order(
+			array( '_ainepay_order_id' => 'OID', '_order_stock_reduced' => '' ),
+			'cancelled',
+			'ainepay',
+			array( $this->reduced_item() )
+		);
+		Ainepay_Order_Sync::reassert_held_stock_marker( $order->get_id() );
+		$this->assertSame( 'yes', $order->get_meta( '_order_stock_reduced' ) );
+	}
+
+	public function test_reassert_restores_marker_for_fractional_reduced_quantity() {
+		// Stores running decimal-quantity plugins reduce fractional amounts; WC stores
+		// the raw float in _reduced_stock and its restore path treats any truthy value
+		// as reduced. The physical-reduction guard must not truncate 0.5 to 0 and skip
+		// the re-assert, or the held half unit would leak exactly like Bug1.
+		$order = $this->order(
+			array( '_ainepay_order_id' => 'OID', '_order_stock_reduced' => '' ),
+			'cancelled',
+			'ainepay',
+			array( new Ainepay_Fake_Item( new Ainepay_Fake_Product( false ), array( '_reduced_stock' => '0.5' ) ) )
+		);
+		Ainepay_Order_Sync::reassert_held_stock_marker( $order->get_id() );
+		$this->assertSame( 'yes', $order->get_meta( '_order_stock_reduced' ) );
+	}
+
+	public function test_reassert_is_noop_when_stock_already_physically_restored() {
+		// The order was legitimately restocked before this cancel (e.g. an admin
+		// on-hold -> pending transition), so no item carries _reduced_stock. Re-marking
+		// it reduced would make a later PAID repair skip re-reduction and oversell, so
+		// the re-assert must not fire despite the gate holding the cancel.
+		$order = $this->order(
+			array( '_ainepay_order_id' => 'OID', '_order_stock_reduced' => '' ),
+			'cancelled',
+			'ainepay',
+			array( new Ainepay_Fake_Item( new Ainepay_Fake_Product( false ) ) )
+		);
+		Ainepay_Order_Sync::reassert_held_stock_marker( $order->get_id() );
+		$this->assertSame( '', $order->get_meta( '_order_stock_reduced' ) );
+	}
+
+	public function test_reassert_is_noop_once_backend_cancel_is_confirmed() {
+		// With _ainepay_status=CANCEL the gate no longer holds, so WC's own restock is
+		// authoritative and the marker must not be re-asserted.
+		$order = $this->order(
+			array(
+				'_ainepay_order_id'    => 'OID',
+				'_ainepay_status'      => 'CANCEL',
+				'_order_stock_reduced' => '',
+			),
+			'cancelled',
+			'ainepay',
+			array( $this->reduced_item() )
+		);
+		Ainepay_Order_Sync::reassert_held_stock_marker( $order->get_id() );
+		$this->assertSame( '', $order->get_meta( '_order_stock_reduced' ) );
+	}
+
+	public function test_reassert_skips_non_ainepay_order() {
+		$order = $this->order(
+			array( '_ainepay_order_id' => 'OID', '_order_stock_reduced' => '' ),
+			'cancelled',
+			'stripe',
+			array( $this->reduced_item() )
+		);
+		Ainepay_Order_Sync::reassert_held_stock_marker( $order->get_id() );
+		$this->assertSame( '', $order->get_meta( '_order_stock_reduced' ) );
 	}
 
 	/* --- premature-restock release on confirmed native cancel ------------- */
