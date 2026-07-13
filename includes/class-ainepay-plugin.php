@@ -61,11 +61,8 @@ class Ainepay_Plugin {
 		}
 		$this->booted = true;
 
-		load_plugin_textdomain(
-			'ainepay-for-woocommerce',
-			false,
-			dirname( AINEPAY_WC_PLUGIN_BASENAME ) . '/languages'
-		);
+		// Translations load automatically from WordPress.org language packs
+		// (WP >= 4.6); no load_plugin_textdomain() call is needed.
 
 		if ( ! $this->woocommerce_ready() ) {
 			add_action( 'admin_notices', array( $this, 'render_missing_woocommerce_notice' ) );

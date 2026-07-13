@@ -5,7 +5,7 @@
  * Description:       Accept non-custodial USDT/USDC stablecoin payments in WooCommerce through AinePay, with local payment-address verification.
  * Version:           0.1.0
  * Requires at least: 6.2
- * Requires PHP:      7.4
+ * Requires PHP:      8.1
  * Author:            AinePay
  * Author URI:        https://ainepay.com
  * License:           GPL-2.0-or-later

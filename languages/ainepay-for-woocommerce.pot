@@ -1,395 +1,766 @@
 # Copyright (C) 2026 AinePay
-# This file is distributed under the GPL-2.0-or-later license.
+# This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
 "Project-Id-Version: AinePay for WooCommerce 0.1.0\n"
-"Report-Msgid-Bugs-To: support@ainepay.com\n"
-"Language-Team: AinePay <support@ainepay.com>\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/ainepay-for-woocommerce\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-07-13T13:02:36+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: ainepay-for-woocommerce\n"
 
-#: includes/class-ainepay-gateway.php:284
-msgid "API Base URL"
+#. Plugin Name of the plugin
+#: ainepay-for-woocommerce.php
+msgid "AinePay for WooCommerce"
 msgstr ""
 
-#: includes/class-ainepay-gateway.php:291
-msgid "API Key"
+#. Plugin URI of the plugin
+#: ainepay-for-woocommerce.php
+msgid "https://github.com/ainepay/ainepay-for-woocommerce"
 msgstr ""
 
-#: includes/class-ainepay-gateway.php:299
-msgid "API Secret"
+#. Description of the plugin
+#: ainepay-for-woocommerce.php
+msgid "Accept non-custodial USDT/USDC stablecoin payments in WooCommerce through AinePay, with local payment-address verification."
 msgstr ""
 
-#: includes/class-ainepay-gateway.php:280
-msgid "API connection"
+#. Author of the plugin
+#: ainepay-for-woocommerce.php
+#: includes/class-ainepay-blocks-support.php:93
+#: includes/class-ainepay-gateway.php:44
+#: assets/js/blocks.js:15
+msgid "AinePay"
 msgstr ""
 
-#: includes/class-ainepay-gateway.php:136
-msgid "API unreachable: %s"
+#. Author URI of the plugin
+#: ainepay-for-woocommerce.php
+msgid "https://ainepay.com"
+msgstr ""
+
+#: includes/admin/class-ainepay-admin-order.php:34
+msgid "AinePay payment"
+msgstr ""
+
+#: includes/admin/class-ainepay-admin-order.php:64
+msgid "Not an AinePay order."
+msgstr ""
+
+#: includes/admin/class-ainepay-admin-order.php:69
+msgid "AinePay order ID"
+msgstr ""
+
+#: includes/admin/class-ainepay-admin-order.php:70
+msgid "Coin"
+msgstr ""
+
+#: includes/admin/class-ainepay-admin-order.php:71
+msgid "Chain"
+msgstr ""
+
+#: includes/admin/class-ainepay-admin-order.php:72
+msgid "Amount"
+msgstr ""
+
+#: includes/admin/class-ainepay-admin-order.php:73
+msgid "Payment address"
+msgstr ""
+
+#: includes/admin/class-ainepay-admin-order.php:74
+msgid "AinePay status"
+msgstr ""
+
+#: includes/admin/class-ainepay-admin-order.php:108
+msgid "AinePay cancel needs manual attention (see order notes)."
+msgstr ""
+
+#: includes/admin/class-ainepay-admin-order.php:110
+msgid "AinePay cancel is in progress; syncing with AinePay…"
+msgstr ""
+
+#: includes/admin/class-ainepay-admin-order.php:136
+msgid "Cancel this order at AinePay? Only an unpaid order can be cancelled."
+msgstr ""
+
+#: includes/admin/class-ainepay-admin-order.php:137
+msgid "Working…"
+msgstr ""
+
+#: includes/admin/class-ainepay-admin-order.php:138
+msgid "Done."
+msgstr ""
+
+#: includes/admin/class-ainepay-admin-order.php:139
+msgid "Request failed. Please retry."
+msgstr ""
+
+#: includes/admin/class-ainepay-admin-order.php:150
+msgid "Cancel this order at AinePay"
+msgstr ""
+
+#: includes/admin/class-ainepay-admin-order.php:165
+msgid "You are not allowed to do this."
+msgstr ""
+
+#: includes/admin/class-ainepay-admin-order.php:169
+msgid "Security check failed. Reload the page and try again."
+msgstr ""
+
+#: includes/admin/class-ainepay-admin-order.php:174
+#: includes/class-ainepay-gateway.php:633
+#: includes/class-ainepay-gateway.php:718
+#: includes/class-ainepay-payment-display.php:188
+#: includes/class-ainepay-payment-display.php:282
+msgid "Order not found."
+msgstr ""
+
+#: includes/admin/class-ainepay-admin-order.php:182
+msgid "Order cancelled at AinePay."
+msgstr ""
+
+#: includes/admin/class-ainepay-admin-order.php:185
+msgid "This order could not be cancelled; it was updated to match its latest AinePay status (see order notes)."
+msgstr ""
+
+#: includes/admin/class-ainepay-admin-order.php:188
+msgid "This order was already paid; it has been moved to a paid state instead of cancelled."
+msgstr ""
+
+#: includes/admin/class-ainepay-admin-order.php:191
+msgid "An on-chain payment was detected; the order is kept awaiting confirmation and was not cancelled."
+msgstr ""
+
+#: includes/admin/class-ainepay-admin-order.php:194
+msgid "AinePay is temporarily unreachable. The cancel has been queued and will keep retrying; the order stays on-hold."
+msgstr ""
+
+#: includes/admin/class-ainepay-admin-order.php:197
+msgid "Cancel failed and needs manual review. See the order notes."
+msgstr ""
+
+#: includes/admin/class-ainepay-admin-order.php:201
+msgid "This order cannot be cancelled at AinePay."
 msgstr ""
 
 #: includes/class-ainepay-gateway.php:45
 msgid "Accept non-custodial USDT/USDC stablecoin payments via AinePay. Customers pay to a deterministically derived address that this plugin verifies locally before showing it."
 msgstr ""
 
-#: includes/class-ainepay-gateway.php:381
-msgid "Advanced"
-msgstr ""
-
-#: includes/class-ainepay-blocks-support.php:93 includes/class-ainepay-gateway.php:44
-msgid "AinePay"
-msgstr ""
-
-#: includes/client/class-ainepay-api-client.php:109
-msgid "AinePay API base URL is not configured."
-msgstr ""
-
-#: includes/class-ainepay-gateway.php:286
-msgid "AinePay API endpoint. Leave as default for production."
-msgstr ""
-
-#: includes/client/class-ainepay-api-client.php:132
-msgid "AinePay API key/secret is not configured."
-msgstr ""
-
-#: includes/class-ainepay-gateway.php:626
-msgid "AinePay did not return a payment address."
-msgstr ""
-
-#: templates/payment-instructions.php:69
-msgid "AinePay does not issue refunds. If a payment is late or the window expires, any funds you sent are kept as a balance on your AinePay account and can be reused — simply place the order again while signed in to apply it."
-msgstr ""
-
-#: templates/payment-instructions.php:71
-msgid "AinePay does not issue refunds. Please pay before the window expires. If you pay late, the funds are held by AinePay; contact the store to recover them."
-msgstr ""
-
-#: includes/class-ainepay-plugin.php:144
-msgid "AinePay for WooCommerce requires WooCommerce %s or later to be installed and active."
-msgstr ""
-
-#: includes/admin/class-ainepay-admin-order.php:68
-msgid "AinePay order ID"
-msgstr ""
-
-#: includes/admin/class-ainepay-admin-order.php:33
-msgid "AinePay payment"
-msgstr ""
-
-#: includes/class-ainepay-gateway.php:651
-msgid "AinePay payment address failed local verification."
-msgstr ""
-
-#: includes/class-ainepay-order-sync.php:187
-msgid "AinePay payment confirmed."
-msgstr ""
-
-#: includes/class-ainepay-order-sync.php:207
-msgid "AinePay payment detected on-chain; awaiting confirmations."
-msgstr ""
-
-#: includes/class-ainepay-order-sync.php:202
-msgid "AinePay payment expired. Any funds sent remain as a reusable balance on the customer's AinePay account."
-msgstr ""
-
-#: includes/class-ainepay-order-sync.php:203
-msgid "AinePay payment expired. Any funds sent are held by AinePay; a guest order cannot reuse them automatically."
-msgstr ""
-
-#: includes/class-ainepay-poller.php:48
-msgid "AinePay polling interval"
-msgstr ""
-
-#: includes/client/class-ainepay-api-client.php:214
-msgid "AinePay returned an error."
-msgstr ""
-
-#: includes/admin/class-ainepay-admin-order.php:73
-msgid "AinePay status"
-msgstr ""
-
-#: includes/class-ainepay-gateway.php:223
-msgid "AinePay: could not load supported coins (%s). Saved other settings."
-msgstr ""
-
-#: includes/admin/class-ainepay-admin-order.php:71
-msgid "Amount"
-msgstr ""
-
-#: includes/class-ainepay-gateway.php:672
-msgid "Awaiting AinePay stablecoin payment."
-msgstr ""
-
-#: includes/class-ainepay-gateway.php:336
-msgid "CREATE2 factory contract address (Ethereum mainnet default pre-filled)."
-msgstr ""
-
-#: includes/admin/class-ainepay-admin-order.php:70
-msgid "Chain"
-msgstr ""
-
-#: includes/class-ainepay-gateway.php:355
-msgid "Chain ID"
-msgstr ""
-
-#: includes/admin/class-ainepay-admin-order.php:69
-msgid "Coin"
-msgstr ""
-
-#: includes/class-ainepay-gateway.php:366
-msgid "Coins are loaded from AinePay (/api/merchant/pay/info) when you save. Customers can choose from enabled coin/chain pairs at checkout."
-msgstr ""
-
-#: includes/class-ainepay-gateway.php:327
-msgid "Collection Address"
-msgstr ""
-
-#: includes/class-ainepay-gateway.php:322
-msgid "Collection address & contracts"
-msgstr ""
-
-#: includes/class-ainepay-gateway.php:187
-msgid "Connected, but address verification FAILED. Check Merchant ID, Collection Address and contract settings."
-msgstr ""
-
-#: includes/class-ainepay-gateway.php:141
-msgid "Connected, but no supported coins were returned."
-msgstr ""
-
-#: includes/class-ainepay-gateway.php:146
-msgid "Connected, but the keccak dependency is missing — run composer install."
-msgstr ""
-
-#: includes/class-ainepay-payment-display.php:105
-msgid "Copied!"
-msgstr ""
-
-#: templates/payment-instructions.php:55
-msgid "Copy"
-msgstr ""
-
-#: includes/class-ainepay-gateway.php:607
-msgid "Could not build a valid order reference."
-msgstr ""
-
-#: includes/class-ainepay-gateway.php:392
-msgid "Debug logging"
-msgstr ""
-
-#: includes/class-ainepay-gateway.php:271
-msgid "Description"
-msgstr ""
-
-#: includes/class-ainepay-gateway.php:88
+#: includes/class-ainepay-gateway.php:122
 msgid "Diagnostics"
 msgstr ""
 
-#: includes/class-ainepay-gateway.php:357
-msgid "EVM chain ID used in address derivation (Ethereum mainnet = 1)."
-msgstr ""
-
-#: includes/class-ainepay-gateway.php:260
-msgid "Enable AinePay"
-msgstr ""
-
-#: includes/class-ainepay-gateway.php:394
-msgid "Enable debug logging"
-msgstr ""
-
-#: includes/class-ainepay-gateway.php:258
-msgid "Enable/Disable"
-msgstr ""
-
-#: includes/class-ainepay-gateway.php:369
-msgid "Enabled coins"
-msgstr ""
-
-#: includes/class-ainepay-gateway.php:334
-msgid "Forwarder Factory Address"
-msgstr ""
-
-#: includes/class-ainepay-gateway.php:341
-msgid "Forwarder Implementation Address"
-msgstr ""
-
-#: includes/class-ainepay-gateway.php:348
-msgid "Forwarder Version"
-msgstr ""
-
-#: includes/class-ainepay-gateway.php:343
-msgid "Forwarder implementation (proxy template) contract address (Ethereum mainnet default pre-filled)."
-msgstr ""
-
-#: includes/class-ainepay-gateway.php:350
-msgid "Forwarder version used in address derivation."
-msgstr ""
-
-#: includes/class-ainepay-gateway.php:387
-msgid "How often to poll AinePay for pending order status as a fallback to webhooks."
-msgstr ""
-
-#: includes/class-ainepay-gateway.php:597
-msgid "Invalid coin selection."
-msgstr ""
-
-#: includes/class-ainepay-gateway.php:395
-msgid "Logs to WooCommerce > Status > Logs (source: ainepay). Secrets are redacted."
-msgstr ""
-
-#: includes/class-ainepay-gateway.php:313
-msgid "Merchant ID"
-msgstr ""
-
-#: includes/client/class-ainepay-api-client.php:93
-msgid "No order ids supplied."
-msgstr ""
-
-#: includes/class-ainepay-gateway.php:520
-msgid "No payment coins are currently available."
-msgstr ""
-
-#: includes/admin/class-ainepay-admin-order.php:63
-msgid "Not an AinePay order."
-msgstr ""
-
-#: includes/class-ainepay-gateway.php:306
-msgid "Notify Secret"
-msgstr ""
-
-#: includes/class-ainepay-gateway.php:586 includes/class-ainepay-payment-display.php:128
-msgid "Order not found."
-msgstr ""
-
-#: includes/class-ainepay-gateway.php:385
-msgid "Order polling interval (seconds)"
-msgstr ""
-
-#: includes/class-ainepay-gateway.php:525
-msgid "Pay with"
-msgstr ""
-
-#: templates/payment-instructions.php:32
-msgid "Pay with AinePay"
-msgstr ""
-
-#: includes/class-ainepay-gateway.php:267
-msgid "Pay with USDT / USDC (AinePay)"
-msgstr ""
-
-#: includes/class-ainepay-gateway.php:274
-msgid "Pay with USDT or USDC stablecoins. You will be shown a payment address after placing the order."
-msgstr ""
-
-#: includes/admin/class-ainepay-admin-order.php:72
-msgid "Payment address"
-msgstr ""
-
-#: includes/class-ainepay-gateway.php:652
-msgid "Payment address verification failed. Please contact the store owner."
-msgstr ""
-
-#: includes/class-ainepay-gateway.php:273
-msgid "Payment method description shown to customers at checkout."
-msgstr ""
-
-#: includes/class-ainepay-gateway.php:266
-msgid "Payment method title shown to customers at checkout."
-msgstr ""
-
-#: includes/class-ainepay-payment-display.php:107
-msgid "Payment received. Thank you!"
-msgstr ""
-
-#: includes/class-ainepay-gateway.php:129
-msgid "Permission denied."
-msgstr ""
-
-#: includes/class-ainepay-gateway.php:542
-msgid "Please select a valid coin to pay with AinePay."
-msgstr ""
-
-#: includes/class-ainepay-gateway.php:167
-msgid "Probe order failed: %s"
-msgstr ""
-
-#: includes/class-ainepay-gateway.php:172
-msgid "Probe order returned no address."
-msgstr ""
-
-#: includes/class-ainepay-gateway.php:372
-msgid "Select which coin/chain combinations to offer. Populated after the first successful connection."
-msgstr ""
-
-#: templates/payment-instructions.php:38
-msgid "Send exactly %1$s %2$s on the %3$s network to the address below."
-msgstr ""
-
-#: includes/class-ainepay-plugin.php:128
-msgid "Settings"
-msgstr ""
-
-#: includes/class-ainepay-gateway.php:190
-msgid "Success: API reachable and address verification passed."
-msgstr ""
-
-#: includes/class-ainepay-gateway.php:364
-msgid "Supported coins"
-msgstr ""
-
-#: includes/class-ainepay-gateway.php:92
+#: includes/class-ainepay-gateway.php:126
 msgid "Test connection &amp; configuration"
 msgstr ""
 
-#: includes/class-ainepay-payment-display.php:96
-msgid "This payment window has expired. If you already paid, your balance is kept on your AinePay account and can be reused — place the order again while signed in to apply it."
+#: includes/class-ainepay-gateway.php:144
+msgid "Permission denied."
 msgstr ""
 
-#: includes/class-ainepay-payment-display.php:98
-msgid "This payment window has expired. If you already paid, the funds are held by AinePay; please contact the store to recover them."
+#. translators: %s: error
+#: includes/class-ainepay-gateway.php:151
+#, php-format
+msgid "API unreachable: %s"
 msgstr ""
 
-#: includes/class-ainepay-gateway.php:591
-msgid "This store currency is not supported by AinePay."
+#: includes/class-ainepay-gateway.php:156
+msgid "Connected, but no supported coins were returned."
 msgstr ""
 
-#: templates/payment-instructions.php:60
-msgid "Time remaining:"
+#: includes/class-ainepay-gateway.php:161
+msgid "Connected, but the keccak dependency is missing — run composer install."
 msgstr ""
 
-#: includes/class-ainepay-gateway.php:264
+#. translators: %s: error
+#: includes/class-ainepay-gateway.php:186
+#, php-format
+msgid "Probe order failed: %s"
+msgstr ""
+
+#: includes/class-ainepay-gateway.php:191
+msgid "Probe order returned no address."
+msgstr ""
+
+#: includes/class-ainepay-gateway.php:206
+msgid "Connected, but address verification FAILED. Check Merchant ID, Collection Address and contract settings."
+msgstr ""
+
+#: includes/class-ainepay-gateway.php:209
+msgid "Success: API reachable and address verification passed."
+msgstr ""
+
+#. translators: %s: error message.
+#: includes/class-ainepay-gateway.php:242
+#, php-format
+msgid "AinePay: could not load supported coins (%s). Saved other settings."
+msgstr ""
+
+#: includes/class-ainepay-gateway.php:278
+msgid "Enable/Disable"
+msgstr ""
+
+#: includes/class-ainepay-gateway.php:280
+msgid "Enable AinePay"
+msgstr ""
+
+#: includes/class-ainepay-gateway.php:284
 msgid "Title"
 msgstr ""
 
-#: includes/class-ainepay-payment-display.php:134
-msgid "Unauthorized."
+#: includes/class-ainepay-gateway.php:286
+msgid "Payment method title shown to customers at checkout."
 msgstr ""
 
-#: includes/client/class-ainepay-api-client.php:204
-msgid "Unexpected response from AinePay (HTTP %d)."
+#: includes/class-ainepay-gateway.php:287
+msgid "Pay with USDT / USDC (AinePay)"
 msgstr ""
 
-#: includes/class-ainepay-gateway.php:324
-msgid "Used to verify that the payment address returned by AinePay is deterministically derived from your collection address. Get these values from the AinePay dashboard."
+#: includes/class-ainepay-gateway.php:291
+msgid "Description"
+msgstr ""
+
+#: includes/class-ainepay-gateway.php:293
+msgid "Payment method description shown to customers at checkout."
 msgstr ""
 
 #: includes/class-ainepay-gateway.php:294
+msgid "Pay with USDT or USDC stablecoins. You will be shown a payment address after placing the order."
+msgstr ""
+
+#: includes/class-ainepay-gateway.php:300
+msgid "API connection"
+msgstr ""
+
+#: includes/class-ainepay-gateway.php:304
+msgid "API Base URL"
+msgstr ""
+
+#: includes/class-ainepay-gateway.php:306
+msgid "Trusted AinePay HTTPS endpoint. Production uses api.ainepay.com; additional test hosts require an explicit developer allowlist filter."
+msgstr ""
+
+#: includes/class-ainepay-gateway.php:311
+msgid "API Key"
+msgstr ""
+
+#. translators: do not hard-validate the prefix; it may evolve.
+#: includes/class-ainepay-gateway.php:314
 msgid "Your AinePay API Key (sent as the x-api-key header). Usually starts with an environment prefix such as \"live_\" or \"test_\"."
 msgstr ""
 
-#: includes/class-ainepay-gateway.php:301
+#: includes/class-ainepay-gateway.php:319
+msgid "API Secret"
+msgstr ""
+
+#: includes/class-ainepay-gateway.php:321
 msgid "Your AinePay API signing secret (used only to sign requests locally; never sent). Usually starts with \"sv_\"."
 msgstr ""
 
-#: includes/class-ainepay-gateway.php:315
-msgid "Your AinePay Merchant ID, found in the AinePay dashboard. Used for address verification and user identification."
+#: includes/class-ainepay-gateway.php:326
+msgid "Notify Secret"
 msgstr ""
 
-#: includes/class-ainepay-gateway.php:308
+#: includes/class-ainepay-gateway.php:328
 msgid "Your AinePay notification secret (used to verify webhook signatures). Different from the API Secret. Usually starts with \"sv_\"."
 msgstr ""
 
-#: includes/class-ainepay-gateway.php:329
+#: includes/class-ainepay-gateway.php:333
+msgid "Merchant ID"
+msgstr ""
+
+#: includes/class-ainepay-gateway.php:335
+msgid "Your AinePay Merchant ID, found in the AinePay dashboard. Used for address verification and user identification."
+msgstr ""
+
+#: includes/class-ainepay-gateway.php:342
+msgid "Collection address & contracts"
+msgstr ""
+
+#: includes/class-ainepay-gateway.php:344
+msgid "Used to verify that the payment address returned by AinePay is deterministically derived from your collection address. Get these values from the AinePay dashboard."
+msgstr ""
+
+#: includes/class-ainepay-gateway.php:347
+msgid "Collection Address"
+msgstr ""
+
+#: includes/class-ainepay-gateway.php:349
 msgid "Your registered (ACTIVE) collection address on AinePay. Funds settle here."
+msgstr ""
+
+#: includes/class-ainepay-gateway.php:354
+msgid "Forwarder Factory Address"
+msgstr ""
+
+#: includes/class-ainepay-gateway.php:356
+msgid "CREATE2 factory contract address (Ethereum mainnet default pre-filled)."
+msgstr ""
+
+#: includes/class-ainepay-gateway.php:361
+msgid "Forwarder Implementation Address"
+msgstr ""
+
+#: includes/class-ainepay-gateway.php:363
+msgid "Forwarder implementation (proxy template) contract address (Ethereum mainnet default pre-filled)."
+msgstr ""
+
+#: includes/class-ainepay-gateway.php:368
+msgid "Forwarder Version"
+msgstr ""
+
+#: includes/class-ainepay-gateway.php:370
+msgid "Forwarder version used in address derivation."
+msgstr ""
+
+#: includes/class-ainepay-gateway.php:375
+msgid "Chain ID"
+msgstr ""
+
+#: includes/class-ainepay-gateway.php:377
+msgid "EVM chain ID used in address derivation (Ethereum mainnet = 1)."
+msgstr ""
+
+#: includes/class-ainepay-gateway.php:384
+msgid "Supported coins"
+msgstr ""
+
+#: includes/class-ainepay-gateway.php:386
+msgid "Coins are loaded from AinePay (/api/merchant/pay/info) when you save. Customers can choose from enabled coin/chain pairs at checkout."
+msgstr ""
+
+#: includes/class-ainepay-gateway.php:389
+msgid "Enabled coins"
+msgstr ""
+
+#: includes/class-ainepay-gateway.php:392
+msgid "Select which coin/chain combinations to offer. Populated after the first successful connection."
+msgstr ""
+
+#: includes/class-ainepay-gateway.php:401
+msgid "Advanced"
+msgstr ""
+
+#: includes/class-ainepay-gateway.php:405
+msgid "Order polling interval (seconds)"
+msgstr ""
+
+#: includes/class-ainepay-gateway.php:407
+msgid "How often to actively query AinePay for pending order status. Webhooks only speed up updates; polling provides final consistency."
+msgstr ""
+
+#: includes/class-ainepay-gateway.php:412
+msgid "Debug logging"
+msgstr ""
+
+#: includes/class-ainepay-gateway.php:414
+msgid "Enable debug logging"
+msgstr ""
+
+#: includes/class-ainepay-gateway.php:415
+msgid "Logs to WooCommerce > Status > Logs (source: ainepay). Secrets are redacted."
+msgstr ""
+
+#: includes/class-ainepay-gateway.php:496
+msgid "API Base URL was not saved. Use the trusted AinePay HTTPS endpoint."
+msgstr ""
+
+#: includes/class-ainepay-gateway.php:567
+msgid "No payment coins are currently available."
+msgstr ""
+
+#: includes/class-ainepay-gateway.php:572
+msgid "Pay with"
+msgstr ""
+
+#: includes/class-ainepay-gateway.php:589
+msgid "Please select a valid coin to pay with AinePay."
+msgstr ""
+
+#: includes/class-ainepay-gateway.php:638
+msgid "This store currency is not supported by AinePay."
+msgstr ""
+
+#: includes/class-ainepay-gateway.php:644
+msgid "Invalid coin selection."
+msgstr ""
+
+#: includes/class-ainepay-gateway.php:664
+#: includes/class-ainepay-gateway.php:701
+msgid "Could not build a valid order reference."
+msgstr ""
+
+#. translators: %s: URL to start a new shop order.
+#: includes/class-ainepay-gateway.php:680
+#, php-format
+msgid "This order already has an AinePay payment. <a href=\"%s\">Start a new order</a> if you need to pay again."
+msgstr ""
+
+#: includes/class-ainepay-gateway.php:710
+msgid "This payment is already being started. Please wait a moment and try again."
+msgstr ""
+
+#: includes/class-ainepay-gateway.php:731
+msgid "This order already has an AinePay payment. Please start a new order."
+msgstr ""
+
+#: includes/class-ainepay-gateway.php:742
+msgid "AinePay could not start the payment. Please try again or choose another payment method."
+msgstr ""
+
+#: includes/class-ainepay-gateway.php:761
+msgid "AinePay returned inconsistent payment details. Please contact the store owner."
+msgstr ""
+
+#: includes/class-ainepay-gateway.php:783
+msgid "AinePay order paid from account balance on creation."
+msgstr ""
+
+#: includes/class-ainepay-gateway.php:802
+msgid "AinePay did not return a payment address. Please start a new order if the payment window has expired."
+msgstr ""
+
+#: includes/class-ainepay-gateway.php:827
+msgid "AinePay payment address failed local verification."
+msgstr ""
+
+#: includes/class-ainepay-gateway.php:829
+msgid "Payment address verification failed. Please contact the store owner."
+msgstr ""
+
+#: includes/class-ainepay-gateway.php:849
+msgid "Awaiting AinePay stablecoin payment."
+msgstr ""
+
+#: includes/class-ainepay-order-sync.php:407
+msgid "AinePay payment confirmed."
+msgstr ""
+
+#: includes/class-ainepay-order-sync.php:416
+msgid "AinePay payment expired. Any funds sent remain as a reusable balance on the customer's AinePay account."
+msgstr ""
+
+#: includes/class-ainepay-order-sync.php:417
+msgid "AinePay payment expired. Any funds sent are held by AinePay; a guest order cannot reuse them automatically."
+msgstr ""
+
+#: includes/class-ainepay-order-sync.php:445
+msgid "AinePay order cancelled."
+msgstr ""
+
+#: includes/class-ainepay-order-sync.php:453
+msgid "AinePay order refunded."
+msgstr ""
+
+#: includes/class-ainepay-order-sync.php:469
+msgid "AinePay payment detected on-chain; order restored to awaiting confirmation."
+msgstr ""
+
+#: includes/class-ainepay-order-sync.php:472
+msgid "AinePay payment detected on-chain; awaiting confirmations."
+msgstr ""
+
+#: includes/class-ainepay-order-sync.php:482
+msgid "Order restored to on-hold: AinePay confirms it is still awaiting payment."
+msgstr ""
+
+#. translators: %s: error message.
+#: includes/class-ainepay-order-sync.php:653
+#, php-format
+msgid "AinePay cancel failed permanently: %s. Order kept on-hold for manual review."
+msgstr ""
+
+#: includes/class-ainepay-order-sync.php:928
+msgid "Order reverted to on-hold: this is an AinePay order with no AinePay payment on record, so it must not be treated as paid."
+msgstr ""
+
+#: includes/class-ainepay-order-sync.php:936
+msgid "This AinePay order was moved to a paid state without a confirmed AinePay payment; verifying with AinePay…"
+msgstr ""
+
+#: includes/class-ainepay-order-sync.php:1027
+msgid "Order reverted to on-hold: AinePay confirmed this order is not paid, so it must not be treated as paid."
+msgstr ""
+
+#: includes/class-ainepay-order-sync.php:1080
+msgid "AinePay could not be reached to verify this order’s payment after repeated attempts. It remains in a paid state but is UNVERIFIED — review it manually."
+msgstr ""
+
+#: includes/class-ainepay-order-sync.php:1093
+msgid "Could not schedule the AinePay payment verification; this order is in a paid state but unverified — review it manually."
+msgstr ""
+
+#: includes/class-ainepay-order-sync.php:1365
+msgid "AinePay cancel could not be confirmed after repeated retries; manual reconciliation required. Order kept on-hold."
+msgstr ""
+
+#: includes/class-ainepay-order-sync.php:1381
+msgid "Could not schedule the AinePay cancel retry; this order needs manual reconciliation. Order kept on-hold."
+msgstr ""
+
+#: includes/class-ainepay-order-sync.php:1483
+msgid "Order refunded in WooCommerce, but AinePay never confirmed this order as paid, so there is no AinePay payment to refund. No AinePay refund verification was started."
+msgstr ""
+
+#: includes/class-ainepay-order-sync.php:1488
+msgid "Order fully refunded in WooCommerce. Issue the matching refund in the AinePay dashboard; AinePay will confirm it shortly."
+msgstr ""
+
+#: includes/class-ainepay-order-sync.php:1525
+msgid "A partial refund was recorded in WooCommerce, but AinePay supports full refunds only — there is no matching partial refund at AinePay. WooCommerce and AinePay will not reconcile for this partial amount; refund the full order if an AinePay refund is required."
+msgstr ""
+
+#: includes/class-ainepay-order-sync.php:1594
+msgid "AinePay refund is still not complete after the merchant grace period; verify it in the AinePay dashboard. (WooCommerce already shows this order refunded.)"
+msgstr ""
+
+#: includes/class-ainepay-order-sync.php:1605
+msgid "AinePay could not be reached after repeated refund verification attempts. Merchant refund grace was not consumed; recurring polling will continue reconciliation."
+msgstr ""
+
+#: includes/class-ainepay-order-sync.php:1622
+msgid "Could not schedule the AinePay refund verification. Merchant refund grace was not exhausted; recurring polling will continue reconciliation."
+msgstr ""
+
+#: includes/class-ainepay-payment-display.php:126
+msgid "This payment window has expired. If you already paid, your balance is kept on your AinePay account and can be reused — place the order again while signed in to apply it."
+msgstr ""
+
+#: includes/class-ainepay-payment-display.php:127
+msgid "This payment window has expired. If you already paid, the funds are held by AinePay; please contact the store to recover them."
+msgstr ""
+
+#: includes/class-ainepay-payment-display.php:154
+msgid "Copied!"
+msgstr ""
+
+#: includes/class-ainepay-payment-display.php:156
+msgid "Payment received. Thank you!"
+msgstr ""
+
+#: includes/class-ainepay-payment-display.php:157
+#: templates/payment-instructions.php:37
+msgid "Payment confirmed"
+msgstr ""
+
+#: includes/class-ainepay-payment-display.php:158
+#: templates/payment-instructions.php:46
+msgid "Payment window expired"
+msgstr ""
+
+#: includes/class-ainepay-payment-display.php:159
+msgid "Cancel this order? Only an order that has not been paid can be cancelled."
+msgstr ""
+
+#: includes/class-ainepay-payment-display.php:160
+msgid "Cancelling…"
+msgstr ""
+
+#: includes/class-ainepay-payment-display.php:161
+msgid "Could not cancel right now. Please try again."
+msgstr ""
+
+#: includes/class-ainepay-payment-display.php:180
+#: includes/class-ainepay-payment-display.php:276
+msgid "Too many requests. Please wait a moment and try again."
+msgstr ""
+
+#: includes/class-ainepay-payment-display.php:194
+#: includes/class-ainepay-payment-display.php:293
+msgid "Unauthorized."
+msgstr ""
+
+#: includes/class-ainepay-payment-display.php:287
+msgid "Security check failed. Please refresh and try again."
+msgstr ""
+
+#: includes/class-ainepay-payment-display.php:300
+msgid "This order was not paid with AinePay and cannot be cancelled here."
+msgstr ""
+
+#: includes/class-ainepay-payment-display.php:310
+msgid "This order can no longer be cancelled."
+msgstr ""
+
+#: includes/class-ainepay-payment-display.php:319
+msgid "Your cancellation is already being processed. Please check back shortly."
+msgstr ""
+
+#: includes/class-ainepay-payment-display.php:328
+msgid "Your order has been cancelled."
+msgstr ""
+
+#: includes/class-ainepay-payment-display.php:332
+msgid "This order could not be cancelled; its status has been updated. Please refresh to see the latest status."
+msgstr ""
+
+#: includes/class-ainepay-payment-display.php:336
+msgid "Your payment has already been received, so the order was not cancelled — it is now being processed."
+msgstr ""
+
+#: includes/class-ainepay-payment-display.php:340
+msgid "We detected your payment on-chain; the order is awaiting confirmation and was not cancelled."
+msgstr ""
+
+#: includes/class-ainepay-payment-display.php:344
+msgid "Your cancellation is being processed. Please check back shortly."
+msgstr ""
+
+#: includes/class-ainepay-payment-display.php:348
+msgid "This order could not be cancelled. Please contact the store."
+msgstr ""
+
+#: includes/class-ainepay-plugin.php:165
+msgid "AinePay gateway is not available."
+msgstr ""
+
+#: includes/class-ainepay-plugin.php:204
+msgid "Settings"
+msgstr ""
+
+#. translators: %s: minimum WooCommerce version.
+#: includes/class-ainepay-plugin.php:220
+#, php-format
+msgid "AinePay for WooCommerce requires WooCommerce %s or later to be installed and active."
+msgstr ""
+
+#: includes/class-ainepay-poller.php:50
+msgid "AinePay polling interval"
+msgstr ""
+
+#: includes/client/class-ainepay-api-client.php:77
+msgid "AinePay API base URL is not configured."
+msgstr ""
+
+#: includes/client/class-ainepay-api-client.php:91
+msgid "AinePay API base URL must be a trusted HTTPS origin without credentials, query parameters, fragments, or a path."
+msgstr ""
+
+#: includes/client/class-ainepay-api-client.php:108
+msgid "AinePay API base URL host is not trusted."
+msgstr ""
+
+#: includes/client/class-ainepay-api-client.php:147
+msgid "AinePay returned an order that did not match this checkout."
+msgstr ""
+
+#: includes/client/class-ainepay-api-client.php:151
+msgid "AinePay returned an invalid initial payment status."
+msgstr ""
+
+#: includes/client/class-ainepay-api-client.php:158
+#: includes/client/class-ainepay-api-client.php:170
+msgid "AinePay returned payment details that did not match this checkout."
+msgstr ""
+
+#: includes/client/class-ainepay-api-client.php:165
+msgid "AinePay returned a payment amount that did not match this checkout."
+msgstr ""
+
+#: includes/client/class-ainepay-api-client.php:175
+msgid "AinePay returned a collection address that did not match this checkout."
+msgstr ""
+
+#: includes/client/class-ainepay-api-client.php:217
+msgid "No order ids supplied."
+msgstr ""
+
+#: includes/client/class-ainepay-api-client.php:239
+msgid "No order id supplied."
+msgstr ""
+
+#: includes/client/class-ainepay-api-client.php:279
+msgid "AinePay API key/secret is not configured."
+msgstr ""
+
+#. translators: %d: HTTP status code.
+#: includes/client/class-ainepay-api-client.php:357
+#, php-format
+msgid "Unexpected response from AinePay (HTTP %d)."
+msgstr ""
+
+#: includes/client/class-ainepay-api-client.php:367
+msgid "AinePay returned an error."
+msgstr ""
+
+#: includes/client/class-ainepay-api-client.php:382
+msgid "AinePay could not process the request."
+msgstr ""
+
+#: templates/payment-instructions.php:40
+msgid "Refunded"
+msgstr ""
+
+#: templates/payment-instructions.php:43
+msgid "Order cancelled"
+msgstr ""
+
+#: templates/payment-instructions.php:53
+msgid "Confirming payment…"
+msgstr ""
+
+#: templates/payment-instructions.php:56
+msgid "Awaiting payment"
+msgstr ""
+
+#: templates/payment-instructions.php:68
+msgid "Pay with AinePay"
+msgstr ""
+
+#. translators: 1: amount, 2: coin, 3: chain.
+#: templates/payment-instructions.php:79
+#, php-format
+msgid "Send exactly %1$s %2$s on the %3$s network to the address below."
+msgstr ""
+
+#: templates/payment-instructions.php:96
+msgid "Copy"
+msgstr ""
+
+#: templates/payment-instructions.php:101
+msgid "Time remaining:"
+msgstr ""
+
+#: templates/payment-instructions.php:120
+msgid "Cancel this order"
+msgstr ""
+
+#: templates/payment-instructions.php:129
+msgid "Your payment has been confirmed. Thank you!"
+msgstr ""
+
+#: templates/payment-instructions.php:131
+msgid "We’re confirming your payment with AinePay. This page will update automatically — please don’t send another payment."
+msgstr ""
+
+#: templates/payment-instructions.php:133
+msgid "This order has been refunded. The refund is processed through AinePay; please allow some time for it to arrive."
+msgstr ""
+
+#: templates/payment-instructions.php:135
+msgid "This order has been cancelled. If you would like to buy again, please place a new order."
+msgstr ""
+
+#: templates/payment-instructions.php:138
+msgid "This payment window has expired. AinePay does not issue refunds; any funds you sent are kept as a balance on your AinePay account and can be reused — place the order again while signed in to apply it."
+msgstr ""
+
+#: templates/payment-instructions.php:140
+msgid "This payment window has expired. AinePay does not issue refunds; if you paid late, the funds are held by AinePay — contact the store to recover them."
+msgstr ""
+
+#: templates/payment-instructions.php:143
+msgid "AinePay does not issue refunds. If a payment is late or the window expires, any funds you sent are kept as a balance on your AinePay account and can be reused — simply place the order again while signed in to apply it."
+msgstr ""
+
+#: templates/payment-instructions.php:145
+msgid "AinePay does not issue refunds. Please pay before the window expires. If you pay late, the funds are held by AinePay; contact the store to recover them."
+msgstr ""
+
+#: assets/js/blocks.js:36
+msgid "Please select a coin to pay with AinePay."
 msgstr ""

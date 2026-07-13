@@ -86,7 +86,7 @@ $show_address = ( 'awaiting' === $state ) && '' !== (string) $address;
 
 		<?php if ( '' !== $qr_svg ) : ?>
 			<div class="ainepay-qr" aria-hidden="true">
-				<?php echo $qr_svg; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- trusted inline SVG from BaconQrCode. ?>
+				<?php echo wp_kses( $qr_svg, Ainepay_Qr::allowed_svg_tags() ); ?>
 			</div>
 		<?php endif; ?>
 

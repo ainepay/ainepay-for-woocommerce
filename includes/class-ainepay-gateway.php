@@ -106,6 +106,17 @@ class Ainepay_Gateway extends WC_Payment_Gateway {
 	 */
 	public function admin_options() {
 		parent::admin_options();
+
+		// Enqueued at render time (footer script) so it only loads on this
+		// gateway's own settings section.
+		wp_enqueue_script(
+			'ainepay-admin-settings',
+			AINEPAY_WC_PLUGIN_URL . 'assets/js/admin-settings.js',
+			array(),
+			AINEPAY_WC_VERSION,
+			true
+		);
+
 		$nonce = wp_create_nonce( 'ainepay_test_connection' );
 		?>
 		<h3 class="wc-settings-sub-title"><?php esc_html_e( 'Diagnostics', 'ainepay-for-woocommerce' ); ?></h3>
@@ -116,25 +127,6 @@ class Ainepay_Gateway extends WC_Payment_Gateway {
 			</button>
 			<span id="ainepay-test-result" style="margin-left:8px"></span>
 		</p>
-		<script>
-		( function () {
-			var btn = document.getElementById( 'ainepay-test-connection' );
-			if ( ! btn ) { return; }
-			btn.addEventListener( 'click', function () {
-				var out = document.getElementById( 'ainepay-test-result' );
-				out.textContent = '…';
-				var data = new FormData();
-				data.append( 'action', 'ainepay_test_connection' );
-				data.append( 'nonce', btn.getAttribute( 'data-nonce' ) );
-				fetch( ajaxurl, { method: 'POST', credentials: 'same-origin', body: data } )
-					.then( function ( r ) { return r.json(); } )
-					.then( function ( res ) {
-						out.textContent = ( res && res.data && res.data.message ) ? res.data.message : 'Error';
-					} )
-					.catch( function () { out.textContent = 'Error'; } );
-			} );
-		} )();
-		</script>
 		<?php
 	}
 

@@ -20,5 +20,5 @@
 	<rule ref="PHPCompatibility.Miscellaneous.ValidIntegers.HexNumericStringFound">
 		<exclude-pattern>includes/class-ainepay-gateway.php</exclude-pattern>
 	</rule>
-	<config name="testVersion" value="7.4-"/>
+	<config name="testVersion" value="8.1-"/>
 </ruleset>

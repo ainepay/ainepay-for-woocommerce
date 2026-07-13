@@ -31,6 +31,68 @@ class Ainepay_Qr {
 	}
 
 	/**
+	 * The wp_kses() allowlist covering the SVG markup BaconQrCode's SvgImageBackEnd
+	 * can emit (root svg, background rect, module/eye paths, transform groups
+	 * and optional gradient fills). Anything else — scripts, event handlers,
+	 * foreignObject — is stripped on output.
+	 *
+	 * @return array<string, array<string, bool>>
+	 */
+	public static function allowed_svg_tags() {
+		return array(
+			'svg'            => array(
+				'xmlns'       => true,
+				'xmlns:xlink' => true,
+				'version'     => true,
+				'width'       => true,
+				'height'      => true,
+				'viewbox'     => true,
+			),
+			'defs'           => array(),
+			'lineargradient' => array(
+				'id'            => true,
+				'gradientunits' => true,
+				'x1'            => true,
+				'y1'            => true,
+				'x2'            => true,
+				'y2'            => true,
+			),
+			'radialgradient' => array(
+				'id'            => true,
+				'gradientunits' => true,
+				'cx'            => true,
+				'cy'            => true,
+				'r'             => true,
+			),
+			'stop'           => array(
+				'offset'       => true,
+				'stop-color'   => true,
+				'stop-opacity' => true,
+			),
+			'g'              => array(
+				'fill'         => true,
+				'fill-opacity' => true,
+				'transform'    => true,
+			),
+			'rect'           => array(
+				'x'            => true,
+				'y'            => true,
+				'width'        => true,
+				'height'       => true,
+				'fill'         => true,
+				'fill-opacity' => true,
+			),
+			'path'           => array(
+				'd'            => true,
+				'fill'         => true,
+				'fill-opacity' => true,
+				'fill-rule'    => true,
+				'transform'    => true,
+			),
+		);
+	}
+
+	/**
 	 * Render the given text as an inline SVG QR code.
 	 *
 	 * @param string $text Text to encode (e.g. a payment address).

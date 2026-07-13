@@ -119,6 +119,28 @@ class Ainepay_Admin_Order {
 			return;
 		}
 
+		// Enqueued at render time (footer script) so it only loads when the
+		// button is actually shown; the meta box renders before the admin footer.
+		wp_enqueue_script(
+			'ainepay-admin-order',
+			AINEPAY_WC_PLUGIN_URL . 'assets/js/admin-order.js',
+			array(),
+			AINEPAY_WC_VERSION,
+			true
+		);
+		wp_localize_script(
+			'ainepay-admin-order',
+			'AinepayAdminOrder',
+			array(
+				'i18n' => array(
+					'confirm' => __( 'Cancel this order at AinePay? Only an unpaid order can be cancelled.', 'ainepay-for-woocommerce' ),
+					'working' => __( 'Working…', 'ainepay-for-woocommerce' ),
+					'done'    => __( 'Done.', 'ainepay-for-woocommerce' ),
+					'failed'  => __( 'Request failed. Please retry.', 'ainepay-for-woocommerce' ),
+				),
+			)
+		);
+
 		$nonce = wp_create_nonce( 'ainepay_cancel_order' );
 		?>
 		<p>
@@ -129,33 +151,6 @@ class Ainepay_Admin_Order {
 			</button>
 			<span id="ainepay-cancel-result" style="display:block;margin-top:6px;"></span>
 		</p>
-		<script>
-		( function () {
-			var btn = document.getElementById( 'ainepay-cancel-order' );
-			if ( ! btn ) { return; }
-			btn.addEventListener( 'click', function () {
-				if ( ! window.confirm( '<?php echo esc_js( __( 'Cancel this order at AinePay? Only an unpaid order can be cancelled.', 'ainepay-for-woocommerce' ) ); ?>' ) ) { return; }
-				var out = document.getElementById( 'ainepay-cancel-result' );
-				btn.disabled = true;
-				out.textContent = '<?php echo esc_js( __( 'Working…', 'ainepay-for-woocommerce' ) ); ?>';
-				var body = new URLSearchParams();
-				body.append( 'action', 'ainepay_cancel_order' );
-				body.append( 'order_id', btn.getAttribute( 'data-order' ) );
-				body.append( 'nonce', btn.getAttribute( 'data-nonce' ) );
-				fetch( ajaxurl, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: body.toString() } )
-					.then( function ( r ) { return r.json(); } )
-					.then( function ( res ) {
-						out.textContent = ( res && res.data && res.data.message ) ? res.data.message : '<?php echo esc_js( __( 'Done.', 'ainepay-for-woocommerce' ) ); ?>';
-						if ( res && res.data && res.data.reload ) { setTimeout( function () { window.location.reload(); }, 800 ); }
-						else { btn.disabled = false; }
-					} )
-					.catch( function () {
-						out.textContent = '<?php echo esc_js( __( 'Request failed. Please retry.', 'ainepay-for-woocommerce' ) ); ?>';
-						btn.disabled = false;
-					} );
-			} );
-		} )();
-		</script>
 		<?php
 	}
 
